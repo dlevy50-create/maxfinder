@@ -96,6 +96,7 @@ nav button.on{color:var(--ok);font-weight:700}
 .days{display:flex;gap:6px;margin-top:6px}
 .days button{flex:1;padding:9px 0;border-radius:10px;background:var(--offBg);color:var(--off);font-weight:600;font-size:13px}
 .days button.on{background:var(--ok);color:#fff}
+.lg summary{font-weight:600;cursor:pointer}.lg p{margin:10px 0 0;font-size:13px;line-height:1.5}.lg .badge,.lg .pill{margin-right:6px}
 .foot{font-size:11px;color:var(--mut);text-align:center;padding:8px 20px 0;line-height:1.5}
 a{color:inherit}
 </style>
@@ -294,14 +295,23 @@ function trainCard(r,from,to){
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
 const byDep=(a,b)=>mins(a.dep)-mins(b.dep);
 const FOOT=`<div class="foot">Données : jeu « tgvmax » de l’open data SNCF (ODbL), mis à jour par la SNCF — ce n’est pas du temps réel, vérifiez sur SNCF Connect avant de compter sur une place. Appli indépendante, non affiliée à SNCF.</div>`;
+const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende des couleurs</summary>
+  <p><span class="badge">3 trains MAX</span> Vert : au moins 3 trains avec des places MAX.</p>
+  <p><span class="badge warn">1 train MAX</span> Orange : seulement 1 ou 2 trains, à réserver vite.</p>
+  <p><span class="badge off">Complet</span> Gris : des trains circulent mais sans place MAX, ou aucun train.</p>
+  <p><span class="pill">08:07</span> Horaire plein vert : départ et arrivée dans vos gares principales.</p>
+  <p><span class="pill alt">08:10</span> Horaire en pointillés orange : passe par une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
+  <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
 const BOOK=`<a class="btn" href="https://www.sncf-connect.com/" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
 
 /* ============ Vues ============ */
-let token=0;
+let token=0,FRESH='',freshAsked=false;
 async function render(){
   const my=++token, v=$('#view');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
-  $('#demoBtn').hidden=!S.demo; $('#subtitle').textContent=S.demo?'MODE DÉMO — données fictives':'Places MAX à 0 € · open data SNCF';
+  $('#demoBtn').hidden=!S.demo; $('#subtitle').textContent=S.demo?'MODE DÉMO — données fictives':'Places MAX à 0 € · '+(FRESH||'open data SNCF');
+  if(!S.demo&&!FRESH&&!freshAsked){freshAsked=true;getJSON(BASE).then(m=>{const d=m&&m.metas&&m.metas.default||{},t=new Date(d.data_processed||d.modified||'');
+    if(!isNaN(t)){FRESH='données SNCF du '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes());$('#subtitle').textContent='Places MAX à 0 € · '+FRESH}}).catch(()=>{})}
   save();
   try{
     if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
@@ -345,8 +355,7 @@ const VIEWS={
     }
     h+='</div>';
   }
-  h+=`<div class="legend"><span><i style="background:var(--okBg)"></i>gare principale</span><span><i style="border:1px dashed var(--acc)"></i>via une gare voisine</span></div>`;
-  return h;
+  return h+LEGEND(true);
  },
  /* ---- Calendrier + trains du jour ---- */
  async trajet(paint){
@@ -365,7 +374,7 @@ const VIEWS={
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
   if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.showFull?'Masquer':'Afficher'} les ${day.length-ok.length} trajets complets</button>`;
-  return h;
+  return h+'<div style="height:12px"></div>'+LEGEND(false);
  },
  /* ---- Découpage en deux tronçons gratuits ---- */
  async split(paint){
@@ -435,12 +444,14 @@ function openPicker(t){pickTarget=t;$('#picker').classList.add('on');$('#pickQ')
 function drawPicker(){
   const q=$('#pickQ').value.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
   let h='';
-  const keys=[...GROUPS.keys()].filter(k=>!q||k.includes(q)||GROUPS.get(k).some(s=>s.toUpperCase().includes(q))).sort();
+  const PAL=['GARE DE LYON','MONTPARNASSE','GARE DU NORD','GARE DE L EST','GARE DE L\'EST','BERCY','AUSTERLITZ','SAINT LAZARE','ST LAZARE'];
+  const isParis=q.length>=3&&PAL.some(a=>a.startsWith(q)||q.includes(a));
+  const keys=[...GROUPS.keys()].filter(k=>!q||k.includes(q)||GROUPS.get(k).some(s=>s.toUpperCase().includes(q))||(isParis&&k==='PARIS')).sort((a,b)=>isParis?(b==='PARIS')-(a==='PARIS')||a.localeCompare(b):a.localeCompare(b));
   const pop=['PARIS','MONTPELLIER','LYON','MARSEILLE','BORDEAUX','LILLE','NANTES','RENNES','STRASBOURG','TOULOUSE','NICE'];
   if(!q)keys.sort((a,b)=>((pop.indexOf(a)+1)||99)-((pop.indexOf(b)+1)||99)||a.localeCompare(b));
   for(const k of keys.slice(0,80)){
     const p=groupPlace(k),m=p.stations.length>1;
-    h+=`<button class="opt" data-g="${esc(k)}"><span>${esc(p.label)}</span><small>${m?'toutes gares ('+p.stations.length+')':''}</small></button>`;
+    h+=`<button class="opt" data-g="${esc(k)}"><span>${esc(p.label)}</span><small>${k==='PARIS'?'Gare de Lyon, Montparnasse, Nord, Est…':m?'toutes gares ('+p.stations.length+')':''}</small></button>`;
     if(m&&(q||pop.includes(k)))h+=p.stations.map(s=>`<button class="opt sub" data-s="${esc(s)}"><span>${esc(pretty(s))}${/intramuros/i.test(s)?' intra-muros':''}</span></button>`).join('');
   }
   $('#pickList').innerHTML=h||'<div class="msg">Aucune gare trouvée.</div>';
