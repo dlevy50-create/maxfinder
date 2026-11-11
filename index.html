@@ -390,14 +390,10 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="badge">3 trains MAX</span> Vert : au moins 3 trains avec des places MAX.</p>
   <p><span class="badge warn">1 train MAX</span> Orange : seulement 1 ou 2 trains, à réserver vite.</p>
   <p><span class="badge off">Complet</span> Gris : des trains circulent mais sans place MAX, ou aucun train.</p>
-  <p><b>Sur l’accueil</b>, chaque horaire affiché est un train avec place MAX :</p>
+  <p><b>Horaires affichés</b> : chacun est un train avec place MAX.</p>
   <p><span class="pill">08:07</span> Fond vert : entre vos gares principales.</p>
-  <p><span class="pill alt">08:10</span> Pointillés orange : via une gare voisine (Massy, Nîmes…).</p>
-  <p><b>Dans Calendrier, sur la frise horaire</b> (de 5 h à minuit), un point = un train :</p>
-  <p><i class="dot"></i>Point vert plein : place MAX entre vos gares principales.</p>
-  <p><i class="dot alt"></i>Cercle orange : place MAX via une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
-  <p><i class="dot full"></i>Petit point gris : train complet en MAX ce matin.</p>
-  <p><i class="dot nw"></i>Halo orange et étiquette <span class="new" style="margin:0">NOUVEAU</span> : place apparue depuis la mise à jour précédente (visible à partir de votre 2ᵉ jour d’utilisation).</p>
+  <p><span class="pill alt">08:10</span> Pointillés orange : via une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
+  <p><span class="pill nw">08:07</span> Halo orange et étiquette <span class="new" style="margin:0">NOUVEAU</span> : place apparue depuis la mise à jour précédente.</p>
   <p><span class="via">↳ Même train</span> : le billet va plus loin que votre gare (ex. Paris → Béziers) mais le train s’y arrête : vous pouvez descendre avant.</p>
   <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
 const RT='https://www.sncf-connect.com/app/home/search', SIMU='https://www.maxjeune-tgvinoui.sncf/';
@@ -502,7 +498,7 @@ const VIEWS={
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
   let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
-  if(day.length)h+=`<div class="card" style="padding-bottom:10px"><div class="st">Répartition dans la journée</div>${timeline(day,S.from,S.to)}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
+  if(day.length)h+=`<div class="card"><div class="st">Horaires avec place MAX</div>${ok.length?`<div class="pills">${[...new Map(ok.map(r=>[r.no+r.dep,r])).values()].map(r=>`<span class="pill ${S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}</div>`:'<div class="st" style="margin-top:6px">Aucun pour l’instant.</div>'}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains sont complets en MAX ce jour-là.':'Aucun train trouvé ce jour-là'+(F.main||F.eve||F.morn?' avec ces filtres':'')+'.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
