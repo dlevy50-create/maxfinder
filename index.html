@@ -52,7 +52,8 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)
 .legend{display:flex;gap:12px;font-size:11px;color:var(--mut);margin-top:10px;flex-wrap:wrap}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .train{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px}
-.train.full{opacity:.5}
+.train.full{opacity:.62}
+.btn.rt{background:var(--acc);margin-top:0}a.badge{text-decoration:none}
 .t{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .t.arr{font-weight:500;color:var(--mut)}
 .st{font-size:13px;color:var(--mut)} .st.alt{color:var(--acc);font-weight:600}
@@ -292,7 +293,7 @@ function trainCard(r,from,to){
   return `<div class="card train ${r.max?'':'full'}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
     <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
-    <div class="meta"><span class="badge ${r.max?'':'off'}">${r.max?'MAX dispo':'Complet MAX'}</span><br>${fdur(dur(r))} · n° ${esc(r.no)}</div>
+    <div class="meta">${r.max?'<span class="badge">MAX dispo</span>':`<a class="badge off" href="${RT}" target="_blank" rel="noopener">Complet · revérifier ↗</a>`}<br>${fdur(dur(r))} · n° ${esc(r.no)}</div>
   </div>`;
 }
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
@@ -305,6 +306,8 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="pill">08:07</span> Horaire plein vert : départ et arrivée dans vos gares principales.</p>
   <p><span class="pill alt">08:10</span> Horaire en pointillés orange : passe par une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
   <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
+const RT='https://www.maxjeune-tgvinoui.sncf/';
+const RTBTN=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur le simulateur SNCF ↗</a>`;
 const BOOK=`<a class="btn" href="https://www.sncf-connect.com/" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
 
 /* ============ Vues ============ */
@@ -371,12 +374,12 @@ const VIEWS={
     c+=`<button class="day ${n>2?'ok':n?'few':''} ${ds===S.date?'sel':''}" data-date="${ds}">${d.getDate()}<small>${n?n+' MAX':dr.length?'complet':'—'}</small></button>`;
   }
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
-  const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.showFull?day:ok;
-  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
+  const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
+  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`+(day.length?RTBTN+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`:'');
   h+=list.map(r=>trainCard(r,S.from,S.to)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
-  if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.showFull?'Masquer':'Afficher'} les ${day.length-ok.length} trajets complets</button>`;
+  if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.hideFull?'Afficher':'Masquer'} les ${day.length-ok.length} trajets complets</button>`;
   return h+'<div style="height:12px"></div>'+LEGEND(false);
  },
  /* ---- Découpage en deux tronçons gratuits ---- */
@@ -421,6 +424,7 @@ const VIEWS={
     <div class="wait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
     <div class="leg"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))}</span><span class="st">n° ${esc(x.b.no)}</span><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span><span></span></div>
   </div>`).join('');
+  h+=RTBTN;
   if(its.length)h+=BOOK+`<div class="foot">Chaque tronçon se réserve séparément. En cas de retard, la correspondance n’est pas garantie entre deux billets distincts.</div>`;
   return h;
  },
@@ -495,7 +499,7 @@ document.addEventListener('click',e=>{
   if(d.dest){S.to=groupPlace(d.dest)||S.to;S.tab='trajet';window.scrollTo(0,0);return render()}
   if(d.act==='swap'){[S.from,S.to]=[S.to,S.from];return render()}
   if(d.act==='alts'){S.alts=!S.alts;return render()}
-  if(d.act==='full'){S.showFull=!S.showFull;return render()}
+  if(d.act==='full'){S.hideFull=!S.hideFull;return render()}
   if(d.act==='fav'){drawFav();return $('#favSheet').classList.add('on')}
   if(d.act==='demo'){S.demo=true;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;return render()}
 });
