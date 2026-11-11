@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const B = 'https://www.maxjeune-tgvinoui.sncf/api/public/refdata';
 const day = process.argv[2] || '2026-11-14';
 const urls = [
+  `${B}/freeplaces-stations?label=nimes`, `${B}/freeplaces-stations?label=massy`, `${B}/freeplaces-stations?label=beziers`, `${B}/freeplaces-stations?label=perpignan`, `${B}/freeplaces-stations?label=sete`, `${B}/freeplaces-stations?label=marne`, `${B}/freeplaces-stations?label=roissy`, `${B}/freeplaces-stations?label=agde`, `${B}/freeplaces-stations?label=narbonne`, `${B}/freeplaces-stations?label=lunel`,
   `${B}/freeplaces-stations?label=montpellier`,
   `${B}/freeplaces-stations?label=paris`,
   `${B}/search-freeplaces-proposals?destination=FRMPL&origin=FRPLY&departureDateTime=${day}T00:00:00`,
@@ -11,9 +12,9 @@ const urls = [
 const out = [];
 for (const url of urls) {
   try {
-    const r = await fetch(url, { headers: { Accept: 'application/json', 'Accept-Language': 'fr-FR', 'User-Agent': 'MaxFinder (appli personnelle, github.com/dlevy50-create/maxfinder)' } });
+    const r = await fetch(url, { headers: { Accept: 'application/json', 'Accept-Language': 'fr-FR', 'User-Agent': 'MaxFinder (appli personnelle, github.com/dlevy50-create/maxfinder)', Origin: 'https://dlevy50-create.github.io' } });
     const t = await r.text();
-    out.push({ url, status: r.status, type: r.headers.get('content-type'), body: t.slice(0, 6000) });
+    out.push({ url, status: r.status, type: r.headers.get('content-type'), headers: Object.fromEntries(r.headers), body: t.slice(0, 1500) });
   } catch (e) { out.push({ url, error: String(e), cause: String(e.cause || '') }); }
 }
 fs.writeFileSync('probe/out.json', JSON.stringify(out, null, 1));
