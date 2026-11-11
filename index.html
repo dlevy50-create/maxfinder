@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaxFinder — places TGV Max</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MaxFinder">
+<meta name="theme-color" content="#0f2a2e">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAACu0lEQVR42u3dsU3kUBCA4cfT5lRBAoKIkAqIqIcCqIeICgjJEBHNUABI2F75eebN94en0+5o7lvbu9zii8vruyb9VbcCwSE4BIfgEByCQ3AIDsEhOCQ4BIfgEByCQ3AIDsEhOASHBIfgEByCQ3AIDsEhOASH4JDgEByCQ3AIDsEhOASH4BAcgkOCQ3AIDsEhOASH4BAcgkP1OkUb6OntpfK/x+vjc5xhLoLcALC4iZhKjseBRVginYzIHbufTgYf4XCQEX9XnQw+AuEgI8veOhl8hMBBRq4d+vhcAXA4bKTb5KnV+3xw83KjzVP3tLLfJ8fbHjnaPPPgWPvi2Htfax8/2jxjDja97E+blj9LtHnqnlZG7mjJc0WbxzWH4BAcgkNwCA4JDsEhOASH4BAcgkNwCA7BIThaxe9lLHmuaPNUP3KM2dHyZ4k2T/XTyt6bWvv40eapfs2x3762PXK0eVrxLzVF21q1L+15tyI4BIfgEByCQ3AIDsEhONrcv7ym+YX5jhyCQzlxOLOk26Qjh2LgcPDItcNe+QZ3ZIQ7rfCRZW/dDTLJCHdBykf8XXU32CUj6FtZPiLvxx2psQiPgxL3slfzCang0NSd0k38/fH++w+v7h/MWfqa4891B1x9ljnnOa38u/GFf8ecs+FYvs1j955lznlwrN3jUXvPMuc8OLZtcPzes8zprawK4DjnhTXyRZllTkcOwSE4BIfgEByCY/fO+QHVyB9uZZnTkUNlcGx7YY1/OWaZc7Yjx9oNHrXxLHPOdlpZvsdjN55lztmuOZZsM8LGs8zZpvxqgv9DCoecVgSH4BAcar7xdl5ft9Y7qJtPRw45rQgOwSE45N3K8ZfQcuQQHIJDcAgOwSE4JDgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDcAgOwSE4BIfgkOAQHIJDcGhcPxEF1CGc4XPEAAAAAElFTkSuQmCC">
+<style>
+:root{
+  --bg:#f3f1ec; --card:#ffffff; --ink:#132326; --mut:#6b7a7c; --line:#e2dfd6;
+  --brand:#0f2a2e; --brandInk:#eaf6f2; --ok:#0b8f6a; --okBg:#dff5ec; --warn:#b26a00; --warnBg:#fdeccd;
+  --off:#9aa5a6; --offBg:#eceae4; --acc:#e4572e; --r:16px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1517; --card:#14272b; --ink:#e9f1ef; --mut:#8fa3a5; --line:#21383c;
+  --brand:#0b1f22; --okBg:#0f3a2e; --ok:#47d6a6; --warnBg:#3b2c0e; --warn:#f0b24a; --offBg:#1b2c2f; --off:#6f8386;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+header{background:var(--brand);color:var(--brandInk);padding:calc(14px + env(safe-area-inset-top)) 18px 16px;position:sticky;top:0;z-index:5}
+header .row{display:flex;align-items:center;gap:10px}
+h1{font-size:20px;margin:0;letter-spacing:-.02em;flex:1}
+h1 b{color:#5fe0b4}
+.hbtn{font-size:13px;padding:7px 11px;border-radius:99px;background:rgba(255,255,255,.12);color:var(--brandInk)}
+.sub{font-size:12px;opacity:.7;margin-top:3px}
+main{padding:14px 14px 20px;max-width:640px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+.od{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
+.pick{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.pick small{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.pick span{font-weight:600;font-size:17px}
+.swap{width:44px;height:44px;border-radius:50%;background:var(--brand);color:#fff;font-size:18px;grid-row:span 2}
+.tog{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}
+.sw{width:46px;height:28px;border-radius:99px;background:var(--offBg);position:relative;flex:none;transition:.15s;border:1px solid var(--line)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.15s}
+.sw.on{background:var(--ok)} .sw.on::after{left:20px}
+.alts{font-size:12px;color:var(--mut);margin-top:6px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:18px 4px 8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .dow{font-size:11px;text-align:center;color:var(--mut);padding-bottom:2px}
+.day{aspect-ratio:1/1.05;border-radius:11px;background:var(--offBg);color:var(--off);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:15px;font-weight:600;border:2px solid transparent}
+.day small{font-size:10px;font-weight:500;margin-top:1px}
+.day.ok{background:var(--okBg);color:var(--ok)} .day.few{background:var(--warnBg);color:var(--warn)}
+.day.sel{border-color:var(--ink)} .day.blank{background:none}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--mut);margin-top:10px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.train{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px}
+.train.full{opacity:.5}
+.t{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.t.arr{font-weight:500;color:var(--mut)}
+.st{font-size:13px;color:var(--mut)} .st.alt{color:var(--acc);font-weight:600}
+.meta{font-size:12px;color:var(--mut);text-align:right;white-space:nowrap}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--okBg);color:var(--ok)}
+.badge.off{background:var(--offBg);color:var(--off)} .badge.warn{background:var(--warnBg);color:var(--warn)} .badge.acc{background:var(--acc);color:#fff}
+.leg{display:grid;grid-template-columns:54px 1fr auto;gap:2px 10px;font-size:14px;align-items:baseline}
+.leg b{font-variant-numeric:tabular-nums}
+.wait{margin:8px 0;padding:6px 10px;border-left:3px dotted var(--mut);font-size:12px;color:var(--mut)}
+.sum{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sum .t{font-size:18px}
+.wk{padding:0;overflow:hidden}
+.wk h3{margin:0;padding:11px 14px;font-size:14px;background:var(--bg);border-bottom:1px solid var(--line)}
+.wkrow{display:block;width:100%;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line)}
+.wkrow:last-child{border-bottom:0}
+.wkrow .top{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:15px}
+.wkrow .dir{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.pill{font-size:13px;font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:8px;background:var(--okBg);color:var(--ok);font-weight:600}
+.pill.alt{background:none;border:1px dashed var(--acc);color:var(--acc)}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+select,input[type=date],input[type=search]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
+.row2 label{font-size:11px;color:var(--mut);display:flex;flex-direction:column;gap:3px;flex:1;text-transform:uppercase;letter-spacing:.05em}
+.btn{display:block;width:100%;padding:13px;border-radius:12px;background:var(--brand);color:#fff;font-weight:600;margin-top:12px;text-align:center;text-decoration:none}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink)}
+.msg{text-align:center;color:var(--mut);padding:26px 14px;font-size:14px}
+.err{background:var(--warnBg);color:var(--warn);border-color:transparent;font-size:14px}
+.spin{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--ok);border-radius:50%;animation:s .8s linear infinite;margin:0 auto 8px}
+@keyframes s{to{transform:rotate(360deg)}}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{padding:9px 2px 8px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--ok);font-weight:700}
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.sheet.on{display:flex}
+.sheet .bar{display:flex;gap:8px;padding:12px 14px;align-items:center}
+.sheet .bar input{flex:1;font-size:17px}
+.sheet .list{overflow:auto;flex:1;padding:0 14px calc(20px + env(safe-area-inset-bottom))}
+.opt{display:flex;justify-content:space-between;width:100%;text-align:left;padding:13px 4px;border-bottom:1px solid var(--line);font-size:16px}
+.opt small{color:var(--mut)} .opt.sub{padding-left:20px;font-size:14px;color:var(--mut)}
+.days{display:flex;gap:6px;margin-top:6px}
+.days button{flex:1;padding:9px 0;border-radius:10px;background:var(--offBg);color:var(--off);font-weight:600;font-size:13px}
+.days button.on{background:var(--ok);color:#fff}
+.foot{font-size:11px;color:var(--mut);text-align:center;padding:8px 20px 0;line-height:1.5}
+a{color:inherit}
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1>Max<b>Finder</b></h1>
+    <button class="hbtn" id="demoBtn" hidden>Démo</button>
+    <button class="hbtn" id="refresh">↻ Actualiser</button>
+  </div>
+  <div class="sub" id="subtitle">Places MAX à 0 € · open data SNCF</div>
+</header>
+<main id="view"></main>
+<nav id="nav">
+  <button data-tab="weekend"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.4 4.2 1.1 6-5.3-3-5.3 3 1.1-6L3.4 9.3l6-.7z"/></svg>Week-ends</button>
+  <button data-tab="trajet"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendrier</button>
+  <button data-tab="split"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="19" cy="12" r="2"/><path d="M6.6 10.8l3.8-3.4M13.6 7.4l3.8 3.4"/></svg>Découpage</button>
+  <button data-tab="explore"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explorer</button>
+</nav>
+
+<div class="sheet" id="picker">
+  <div class="bar"><input type="search" id="pickQ" placeholder="Ville ou gare" autocomplete="off"><button class="hbtn" style="background:var(--offBg);color:var(--ink)" id="pickX">Fermer</button></div>
+  <div class="list" id="pickList"></div>
+</div>
+<div class="sheet" id="favSheet">
+  <div class="bar"><h1 style="font-size:18px">Mon trajet habituel</h1><button class="hbtn" style="background:var(--ok);color:#fff" id="favOk">OK</button></div>
+  <div class="list" id="favBody"></div>
+</div>
+
+<script>
+"use strict";
+/* ============ Utilitaires ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const HORIZON=30;
+const DOW=['dim','lun','mar','mer','jeu','ven','sam'], DOWL=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MON=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const fdate=s=>{const d=parse(s);return DOWL[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]};
+const mins=t=>{const[h,m]=String(t).split(':').map(Number);return h*60+m};
+const dur=r=>(mins(r.arr)-mins(r.dep)+1440)%1440;
+const fdur=m=>Math.floor(m/60)+'h'+pad(m%60);
+const hm=m=>pad(Math.floor(m/60)%24)+':'+pad(m%60);
+const KEEP_UP=new Set(['TGV','CDG2','CDG']);
+const pretty=n=>String(n).replace(/\s*\(.*?\)\s*/g,' ').trim().toLowerCase().split(/\s+/)
+  .map(w=>KEEP_UP.has(w.toUpperCase())?w.toUpperCase():(['de','du','des','la','le','les','en','sur','et','d'].includes(w)?w:w[0].toUpperCase()+w.slice(1))).join(' ').replace(/^./,c=>c.toUpperCase());
+const TWO=new Set(['LA','LE','LES','ST','STE','SAINT','SAINTE','AIX','BOURG','MONT','PORT']);
+const cityKey=n=>{const w=String(n).toUpperCase().replace(/\(.*?\)/g,' ').trim().split(/\s+/);return TWO.has(w[0])&&w[1]?w[0]+' '+w[1]:w[0]};
+/* gares voisines : clé de ville -> clés des villes proches */
+const NEIGH={
+ PARIS:['MASSY','MARNE','AEROPORT','VERSAILLES'],
+ MONTPELLIER:['NIMES','SETE','LUNEL','AGDE','BEZIERS'],
+ NIMES:['MONTPELLIER','AVIGNON','LUNEL'], BEZIERS:['AGDE','NARBONNE','SETE'], PERPIGNAN:['NARBONNE'],
+ LYON:['MACON','VIENNE','VALENCE'], MARSEILLE:['AIX EN','AVIGNON'], 'AIX EN':['MARSEILLE'], AVIGNON:['NIMES','ORANGE','AIX EN'],
+ LILLE:['ARRAS','DOUAI','ROUBAIX','TOURCOING','TGV'], BORDEAUX:['LIBOURNE','ANGOULEME'], NANTES:['ANGERS','ST NAZAIRE'],
+ RENNES:['VITRE','LAVAL'], TOULOUSE:['MONTAUBAN'], NICE:['ANTIBES','CANNES'], STRASBOURG:['SAVERNE','COLMAR'],
+ TOULON:['MARSEILLE','HYERES'], VALENCE:['MONTELIMAR','LYON'], NARBONNE:['BEZIERS','PERPIGNAN']
+};
+
+/* ============ État ============ */
+const LS='maxfinder.v1';
+let S={tab:'weekend',from:null,to:null,date:iso(today()),alts:true,showFull:false,
+  fav:{a:null,b:null,out:[5,6],ret:[0]},minConn:30,maxWait:180,sort:'arr',notBefore:0,demo:false};
+try{Object.assign(S,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
+if(location.hash==='#demo')S.demo=true;
+if(S.date<iso(today()))S.date=iso(today());
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+let STATIONS=[], GROUPS=new Map();
+
+/* ============ Données ============ */
+const BASE='https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/tgvmax';
+const qs=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+const cache=new Map();
+async function getJSON(url){
+  const c=cache.get(url); if(c&&Date.now()-c.t<5*60e3)return c.v;
+  const r=await fetch(url,{headers:{Accept:'application/json'}});
+  if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(e){} throw new Error('SNCF open data a répondu '+r.status+(m?' — '+m:''))}
+  const v=await r.json(); cache.set(url,{t:Date.now(),v}); return v;
+}
+const norm=x=>({date:String(x.date).slice(0,10),no:String(x.train_no),o:x.origine,d:x.destination,
+  dep:String(x.heure_depart).slice(0,5),arr:String(x.heure_arrivee).slice(0,5),max:String(x.od_happy_card).toUpperCase()==='OUI'});
+async function trains({origins,dests,from,to,onlyMax}){
+  if(S.demo)return demoTrains({origins,dests,from,to,onlyMax});
+  const p=[];
+  if(origins)p.push('('+origins.map(s=>'origine='+qs(s)).join(' or ')+')');
+  if(dests)p.push('('+dests.map(s=>'destination='+qs(s)).join(' or ')+')');
+  p.push(from===to?`date=date'${from}'`:`date>=date'${from}' and date<=date'${to}'`);
+  if(onlyMax)p.push('od_happy_card="OUI"');
+  const url=BASE+'/exports/json?limit=-1&select='+encodeURIComponent('date,train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card')+'&where='+encodeURIComponent(p.join(' and '));
+  const rows=(await getJSON(url)).map(norm), seen=new Set();
+  return rows.filter(r=>{const k=[r.date,r.no,r.o,r.d,r.dep].join('|');if(seen.has(k))return false;seen.add(k);return true});
+}
+async function loadStations(){
+  if(S.demo){STATIONS=DEMO_ST.slice();}
+  else{
+    let ck=null;try{ck=JSON.parse(localStorage.getItem(LS+'.st')||'null')}catch(e){}
+    if(ck&&Date.now()-ck.t<7*864e5&&ck.v.length>20)STATIONS=ck.v;
+    else{
+      let res;
+      try{res=(await getJSON(BASE+'/records?select=origine&group_by=origine&limit=2000')).results}
+      catch(e){res=await getJSON(BASE+'/exports/json?select=origine&group_by=origine&limit=-1')}
+      STATIONS=res.map(x=>x.origine).filter(Boolean).sort();
+      try{localStorage.setItem(LS+'.st',JSON.stringify({t:Date.now(),v:STATIONS}))}catch(e){}
+    }
+  }
+  GROUPS=new Map();
+  for(const s of STATIONS){const k=cityKey(s);(GROUPS.get(k)||GROUPS.set(k,[]).get(k)).push(s)}
+}
+function groupPlace(k){
+  const st=GROUPS.get(k); if(!st)return null;
+  let label=pretty(st[0]);
+  if(st.length>1){const w=st.map(s=>pretty(s).split(' '));let i=0;while(w.every(x=>x[i]&&x[i]===w[0][i]))i++;label=w[0].slice(0,Math.max(i,1)).join(' ')}
+  return {key:k,label,stations:st.slice()};
+}
+const stationPlace=s=>({key:cityKey(s),label:pretty(s),stations:[s]});
+function altStations(p){
+  if(!p)return[];const out=[];
+  for(const s of (GROUPS.get(p.key)||[]))if(!p.stations.includes(s))out.push(s);
+  for(const k of (NEIGH[p.key]||[]))for(const s of (GROUPS.get(k)||[]))out.push(s);
+  return out;
+}
+const stOf=p=>S.alts?[...p.stations,...altStations(p)]:p.stations.slice();
+const altNames=p=>[...new Set(altStations(p).map(pretty))].join(', ');
+function validPlace(p){return p&&p.stations&&p.stations.every(s=>STATIONS.includes(s))}
+function ensureDefaults(){
+  const P=groupPlace('PARIS')||stationPlace(STATIONS[0]), M=groupPlace('MONTPELLIER')||stationPlace(STATIONS[1]||STATIONS[0]);
+  if(!validPlace(S.fav.a))S.fav.a=P; if(!validPlace(S.fav.b))S.fav.b=M;
+  if(!validPlace(S.from))S.from=S.fav.a; if(!validPlace(S.to))S.to=S.fav.b;
+}
+
+/* ============ Mode démo (données fictives) ============ */
+const DEMO_LINES=[
+ {n:6200,s:[['PARIS (intramuros)',0],['VALENCE TGV',130],['NIMES',175],['MONTPELLIER SAINT ROCH',205],['SETE',225],['BEZIERS',250],['PERPIGNAN',310]],d:[367,487,607,847,967,1087]},
+ {n:6600,s:[['PARIS (intramuros)',0],['LYON (intramuros)',118]],d:[360,420,480,540,600,660,720,780,840,900,960,1020,1080,1140]},
+ {n:6800,s:[['LYON (intramuros)',0],['VALENCE TGV',36],['NIMES',82],['MONTPELLIER SUD DE FRANCE',106]],d:[450,570,690,810,930,1050,1170]},
+ {n:5100,s:[['LILLE EUROPE',0],['AEROPORT CDG2 TGV ROISSY',55],['MARNE LA VALLEE CHESSY',70],['LYON ST EXUPERY TGV',190],['NIMES',262],['MONTPELLIER SAINT ROCH',292]],d:[420,780]},
+ {n:6100,s:[['PARIS (intramuros)',0],['AVIGNON TGV',160],['AIX EN PROVENCE TGV',182],['MARSEILLE ST CHARLES',196]],d:[397,457,637,877,997,1117]},
+ {n:4700,s:[['MARSEILLE ST CHARLES',0],['AVIGNON TGV',32],['NIMES',62],['MONTPELLIER SAINT ROCH',92]],d:[550,670,790,1030,1150,1230]},
+ {n:8500,s:[['PARIS (intramuros)',0],['BORDEAUX ST JEAN',126]],d:[400,640,880,1120]},
+ {n:8800,s:[['PARIS (intramuros)',0],['ANGERS ST LAUD',92],['NANTES',130]],d:[420,660,900,1140]},
+ {n:5200,s:[['NANTES',0],['ANGERS ST LAUD',38],['MASSY TGV',150],['LYON (intramuros)',270],['NIMES',350],['MONTPELLIER SAINT ROCH',380]],d:[480]},
+ {n:7000,s:[['PARIS (intramuros)',0],['LILLE FLANDRES',62]],d:[430,730,1030]},
+ {n:2400,s:[['PARIS (intramuros)',0],['STRASBOURG',108]],d:[440,740,1040]},
+];
+const DEMO_ST=[...new Set(DEMO_LINES.flatMap(l=>l.s.map(x=>x[0])))].sort();
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return((h>>>0)%10000)/10000};
+function demoTrains({origins,dests,from,to,onlyMax}){
+  const out=[];
+  for(let d=parse(from);d<=parse(to);d=addDays(d,1)){
+    const ds=iso(d),busy=[0,5,6].includes(d.getDay());
+    DEMO_LINES.forEach(l=>{[false,true].forEach(rev=>{
+      const total=l.s[l.s.length-1][1];
+      const stops=rev?l.s.slice().reverse().map(x=>[x[0],total-x[1]]):l.s;
+      l.d.forEach((dep,i)=>{
+        const no=String(l.n+i*2+(rev?1:0)),t0=rev?dep+25:dep;
+        for(let a=0;a<stops.length;a++)for(let b=a+1;b<stops.length;b++){
+          const o=stops[a][0],de=stops[b][0];
+          if(origins&&!origins.includes(o))continue; if(dests&&!dests.includes(de))continue;
+          const len=stops[b][1]-stops[a][1], p=len>150?(busy?.16:.45):(busy?.5:.8);
+          const max=hash(ds+no+o+de)<p; if(onlyMax&&!max)continue;
+          if(t0+stops[b][1]>=1440)continue;
+          out.push({date:ds,no,o,d:de,dep:hm(t0+stops[a][1]),arr:hm(t0+stops[b][1]),max});
+        }
+      });
+    })});
+  }
+  return Promise.resolve(out);
+}
+
+/* ============ Composants ============ */
+const loading=t=>`<div class="msg"><div class="spin"></div>${t||'Chargement…'}</div>`;
+const errorBox=e=>`<div class="card err"><b>Impossible de joindre l’open data SNCF.</b><br>${esc(e.message||e)}<br><button class="btn" data-act="demo">Voir l’appli avec des données de démo</button></div>`;
+function odCard(){
+  const a=altNames(S.from),b=altNames(S.to);
+  return `<div class="card"><div class="od">
+    <button class="pick" data-pick="from"><small>Départ</small><span>${esc(S.from.label)}</span></button>
+    <button class="swap" data-act="swap" aria-label="Inverser">⇅</button>
+    <button class="pick" data-pick="to"><small>Arrivée</small><span>${esc(S.to.label)}</span></button></div>
+    <div class="tog"><button class="sw ${S.alts?'on':''}" data-act="alts" aria-label="Gares voisines"></button><span>Inclure les gares voisines</span></div>
+    ${S.alts&&(a||b)?`<div class="alts">${a?'Départ : '+esc(a)+'. ':''}${b?'Arrivée : '+esc(b)+'.':''}</div>`:''}
+  </div>`;
+}
+function trainCard(r,from,to){
+  const ao=!from.stations.includes(r.o), ad=!to.stations.includes(r.d);
+  return `<div class="card train ${r.max?'':'full'}">
+    <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
+    <div><div class="st ${ao?'alt':''}">${esc(pretty(r.o))}</div><div class="st ${ad?'alt':''}">${esc(pretty(r.d))}</div></div>
+    <div class="meta"><span class="badge ${r.max?'':'off'}">${r.max?'MAX dispo':'Complet MAX'}</span><br>${fdur(dur(r))} · n° ${esc(r.no)}</div>
+  </div>`;
+}
+const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
+const byDep=(a,b)=>mins(a.dep)-mins(b.dep);
+const FOOT=`<div class="foot">Données : jeu « tgvmax » de l’open data SNCF (ODbL), mis à jour par la SNCF — ce n’est pas du temps réel, vérifiez sur SNCF Connect avant de compter sur une place. Appli indépendante, non affiliée à SNCF.</div>`;
+const BOOK=`<a class="btn" href="https://www.sncf-connect.com/" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
+
+/* ============ Vues ============ */
+let token=0;
+async function render(){
+  const my=++token, v=$('#view');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
+  $('#demoBtn').hidden=!S.demo; $('#subtitle').textContent=S.demo?'MODE DÉMO — données fictives':'Places MAX à 0 € · open data SNCF';
+  save();
+  try{
+    if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
+    ensureDefaults();
+    const html=await VIEWS[S.tab](h=>{if(my===token)v.innerHTML=h});
+    if(my===token)v.innerHTML=html+FOOT;
+  }catch(e){console.error(e);if(my===token)v.innerHTML=errorBox(e)}
+}
+const range=()=>({from:iso(today()),to:iso(addDays(today(),HORIZON))});
+const VIEWS={
+ /* ---- Week-ends : trajet habituel ---- */
+ async weekend(paint){
+  const f=S.fav, head=`<div class="card"><div class="sum" style="margin:0"><div><div class="st">Mon trajet habituel</div><div class="t">${esc(f.a.label)} ⇄ ${esc(f.b.label)}</div>
+    <div class="st">Aller ${f.out.map(d=>DOW[d]).join(', ')||'—'} · Retour ${f.ret.map(d=>DOW[d]).join(', ')||'—'}${S.alts?' · gares voisines incluses':''}</div></div>
+    <button class="hbtn" style="background:var(--offBg);color:var(--ink)" data-act="fav">Modifier</button></div></div>`;
+  paint(head+loading('Recherche des places MAX sur 30 jours…'));
+  const R=range(), A=stOf(f.a), B=stOf(f.b);
+  const [out,ret]=await Promise.all([trains({origins:A,dests:B,...R}),trains({origins:B,dests:A,...R})]);
+  const weeks=new Map();
+  for(let i=0;i<=HORIZON;i++){
+    const d=addDays(today(),i),w=d.getDay(),ds=iso(d);
+    const mon=iso(addDays(d,-((w+6)%7)));
+    const push=(dir,rows,from,to)=>{(weeks.get(mon)||weeks.set(mon,[]).get(mon)).push({ds,dir,from,to,rows:rows.filter(r=>r.date===ds&&r.max).sort(byDep),any:rows.some(r=>r.date===ds)})};
+    if(f.out.includes(w))push('Aller',out,f.a,f.b);
+    if(f.ret.includes(w))push('Retour',ret,f.b,f.a);
+  }
+  let h=head;
+  if(!weeks.size)h+=`<div class="msg">Choisissez au moins un jour d’aller ou de retour.</div>`;
+  for(const [mon,items] of weeks){
+    const m=parse(mon);
+    h+=`<div class="card wk"><h3>Semaine du ${m.getDate()} ${MON[m.getMonth()]}</h3>`;
+    for(const it of items){
+      const seen=new Set(),u=it.rows.filter(r=>{const k=r.no+r.dep;if(seen.has(k))return false;seen.add(k);return true});
+      const n=u.length;
+      h+=`<button class="wkrow" data-go='${esc(JSON.stringify({ds:it.ds,rev:it.dir==='Retour'}))}'>
+        <div class="dir">${it.dir} · ${esc(it.from.label)} → ${esc(it.to.label)}</div>
+        <div class="top"><span>${fdate(it.ds)}</span><span class="badge ${n>2?'':n?'warn':'off'}">${n?n+' train'+(n>1?'s':'')+' MAX':it.any?'Complet':'Pas de données'}</span></div>
+        ${n?`<div class="pills">${u.slice(0,8).map(r=>`<span class="pill ${it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)?'':'alt'}">${r.dep}</span>`).join('')}${n>8?`<span class="st">+${n-8}</span>`:''}</div>`
+           :it.any?`<div class="st" style="margin-top:5px">Touchez pour tenter un découpage →</div>`:''}
+      </button>`;
+    }
+    h+='</div>';
+  }
+  h+=`<div class="legend"><span><i style="background:var(--okBg)"></i>gare principale</span><span><i style="border:1px dashed var(--acc)"></i>via une gare voisine</span></div>`;
+  return h;
+ },
+ /* ---- Calendrier + trains du jour ---- */
+ async trajet(paint){
+  const head=odCard(); paint(head+loading());
+  const rows=await trains({origins:stOf(S.from),dests:stOf(S.to),...range()});
+  const t0=today(),lead=(t0.getDay()+6)%7;
+  let c='<div class="cal">'+['L','M','M','J','V','S','D'].map(x=>`<div class="dow">${x}</div>`).join('')+'<div class="day blank"></div>'.repeat(lead);
+  for(let i=0;i<=HORIZON;i++){
+    const d=addDays(t0,i),ds=iso(d),dr=rows.filter(r=>r.date===ds),n=countMax(dr);
+    c+=`<button class="day ${n>2?'ok':n?'few':''} ${ds===S.date?'sel':''}" data-date="${ds}">${d.getDate()}<small>${n?n+' MAX':dr.length?'complet':'—'}</small></button>`;
+  }
+  c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
+  const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.showFull?day:ok;
+  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
+  h+=list.map(r=>trainCard(r,S.from,S.to)).join('');
+  if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
+  else h+=BOOK;
+  if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.showFull?'Masquer':'Afficher'} les ${day.length-ok.length} trajets complets</button>`;
+  return h;
+ },
+ /* ---- Découpage en deux tronçons gratuits ---- */
+ async split(paint){
+  const opt=(v,l,cur)=>`<option value="${v}" ${v==cur?'selected':''}>${l}</option>`;
+  const head=odCard()+`<div class="card"><div class="row2">
+    <label>Date<input type="date" id="sDate" value="${S.date}" min="${iso(today())}" max="${iso(addDays(today(),HORIZON))}"></label>
+    <label>Départ après<select id="sNot">${[0,6,8,10,12,14,16,18,20].map(x=>opt(x,x?x+' h':'Peu importe',S.notBefore)).join('')}</select></label></div>
+    <div class="row2"><label>Correspondance min.<select id="sMin">${[15,20,30,45,60,90].map(x=>opt(x,x+' min',S.minConn)).join('')}</select></label>
+    <label>Attente max.<select id="sMax">${[90,120,180,240,360].map(x=>opt(x,fdur(x),S.maxWait)).join('')}</select></label>
+    <label>Tri<select id="sSort">${opt('arr','Arrivée',S.sort)+opt('dur','Durée',S.sort)+opt('dep','Départ',S.sort)}</select></label></div></div>`;
+  paint(head+loading('Calcul des combinaisons…'));
+  const O=stOf(S.from),D=stOf(S.to),q={from:S.date,to:S.date,onlyMax:true};
+  const [l1,l2]=await Promise.all([trains({origins:O,...q}),trains({dests:D,...q})]);
+  const excl=new Set([...O,...D]), direct=countMax(l1.filter(r=>D.includes(r.d)));
+  const hub=new Map();
+  for(const r of l2){if(excl.has(r.o))continue;const k=cityKey(r.o);(hub.get(k)||hub.set(k,[]).get(k)).push(r)}
+  const best=new Map();
+  for(const a of l1){
+    if(excl.has(a.d)||mins(a.dep)<S.notBefore*60)continue;
+    const c=hub.get(cityKey(a.d)); if(!c)continue;
+    const aArr=mins(a.dep)+dur(a);
+    for(const b of c){
+      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, multi=!same&&(!sameSt||/intramuros/i.test(a.d));
+      const wait=mins(b.dep)-aArr, need=same?0:multi?Math.max(S.minConn,60):S.minConn;
+      if(wait<need||wait>S.maxWait)continue;
+      const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
+      const k=a.no+'|'+a.dep+'|'+a.o+'|'+cityKey(a.d)+'|'+b.d, p=best.get(k);
+      if(!p||it.arr<p.arr)best.set(k,it);
+    }
+  }
+  /* on enlève les options dominées : même départ ou plus tard ET arrivée plus tardive via le même hub */
+  let its=[...best.values()];
+  const key={arr:x=>x.arr*10000+x.total,dur:x=>x.total*10000+x.arr,dep:x=>x.dep*10000+x.total}[S.sort];
+  its.sort((x,y)=>(y.same-x.same)||key(x)-key(y));
+  let h=head+`<h2>${fdate(S.date)} · ${its.length} combinaison${its.length>1?'s':''}</h2>`;
+  if(direct)h+=`<div class="card" style="font-size:14px">ℹ️ ${direct} train${direct>1?'s':''} direct${direct>1?'s':''} MAX existe${direct>1?'nt':''} aussi ce jour-là. <button data-tab="trajet" style="text-decoration:underline">Voir</button></div>`;
+  if(!its.length)h+=`<div class="msg">Aucune combinaison de deux tronçons gratuits avec ces réglages. Essayez une autre date, une attente max. plus longue, ou activez les gares voisines.</div>`;
+  h+=its.slice(0,60).map(x=>`<div class="card">
+    <div class="sum"><span class="t">${hm(x.dep)} → ${hm(x.arr)}</span><span class="meta">${fdur(x.total)} ${x.same?'<span class="badge acc">Même train</span>':''}</span></div>
+    <div class="leg"><b>${x.a.dep}</b><span>${esc(pretty(x.a.o))}</span><span class="st">n° ${esc(x.a.no)}</span><b>${x.a.arr}</b><span>${esc(pretty(x.a.d))}</span><span></span></div>
+    <div class="wait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
+    <div class="leg"><b>${x.b.dep}</b><span>${esc(pretty(x.b.o))}</span><span class="st">n° ${esc(x.b.no)}</span><b>${x.b.arr}</b><span>${esc(pretty(x.b.d))}</span><span></span></div>
+  </div>`).join('');
+  if(its.length)h+=BOOK+`<div class="foot">Chaque tronçon se réserve séparément. En cas de retard, la correspondance n’est pas garantie entre deux billets distincts.</div>`;
+  return h;
+ },
+ /* ---- Explorer : toutes les destinations depuis une gare ---- */
+ async explore(paint){
+  const head=`<div class="card"><button class="pick" data-pick="from"><small>Depuis</small><span>${esc(S.from.label)}</span></button>
+    <div class="row2"><label>Date<input type="date" id="sDate" value="${S.date}" min="${iso(today())}" max="${iso(addDays(today(),HORIZON))}"></label></div></div>`;
+  paint(head+loading());
+  const rows=await trains({origins:S.from.stations,from:S.date,to:S.date,onlyMax:true});
+  const g=new Map();
+  for(const r of rows){const k=cityKey(r.d);if(k===S.from.key)continue;(g.get(k)||g.set(k,[]).get(k)).push(r)}
+  const list=[...g.entries()].map(([k,rs])=>({k,p:groupPlace(k)||stationPlace(rs[0].d),n:countMax(rs),first:rs.sort(byDep)[0].dep,last:rs[rs.length-1].dep,min:Math.min(...rs.map(dur))}))
+    .sort((a,b)=>b.n-a.n||a.p.label.localeCompare(b.p.label));
+  let h=head+`<h2>${fdate(S.date)} · ${list.length} destination${list.length>1?'s':''} à 0 €</h2>`;
+  if(!list.length)h+=`<div class="msg">Aucune place MAX au départ de ${esc(S.from.label)} ce jour-là.</div>`;
+  h+=`<div class="card" style="padding:4px 14px">`+list.map(x=>`<button class="opt" data-dest="${esc(x.k)}"><span>${esc(x.p.label)}<br><small>${x.first}${x.n>1?' → '+x.last:''} · dès ${fdur(x.min)}</small></span><span class="badge">${x.n} train${x.n>1?'s':''}</span></button>`).join('')+`</div>`;
+  return h;
+ }
+};
+
+/* ============ Sélecteur de gare ============ */
+let pickTarget=null;
+function openPicker(t){pickTarget=t;$('#picker').classList.add('on');$('#pickQ').value='';drawPicker();setTimeout(()=>$('#pickQ').focus(),50)}
+function drawPicker(){
+  const q=$('#pickQ').value.trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  let h='';
+  const keys=[...GROUPS.keys()].filter(k=>!q||k.includes(q)||GROUPS.get(k).some(s=>s.toUpperCase().includes(q))).sort();
+  const pop=['PARIS','MONTPELLIER','LYON','MARSEILLE','BORDEAUX','LILLE','NANTES','RENNES','STRASBOURG','TOULOUSE','NICE'];
+  if(!q)keys.sort((a,b)=>((pop.indexOf(a)+1)||99)-((pop.indexOf(b)+1)||99)||a.localeCompare(b));
+  for(const k of keys.slice(0,80)){
+    const p=groupPlace(k),m=p.stations.length>1;
+    h+=`<button class="opt" data-g="${esc(k)}"><span>${esc(p.label)}</span><small>${m?'toutes gares ('+p.stations.length+')':''}</small></button>`;
+    if(m&&(q||pop.includes(k)))h+=p.stations.map(s=>`<button class="opt sub" data-s="${esc(s)}"><span>${esc(pretty(s))}${/intramuros/i.test(s)?' intra-muros':''}</span></button>`).join('');
+  }
+  $('#pickList').innerHTML=h||'<div class="msg">Aucune gare trouvée.</div>';
+}
+$('#pickQ').addEventListener('input',drawPicker);
+$('#pickX').onclick=()=>$('#picker').classList.remove('on');
+$('#pickList').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b)return;
+  const p=b.dataset.g?groupPlace(b.dataset.g):stationPlace(b.dataset.s);
+  if(pickTarget==='favA')S.fav.a=p;else if(pickTarget==='favB')S.fav.b=p;else S[pickTarget]=p;
+  $('#picker').classList.remove('on');
+  if(pickTarget.startsWith('fav'))drawFav();else render();
+});
+
+/* ============ Trajet habituel ============ */
+function drawFav(){
+  const days=(k)=>`<div class="days">${[1,2,3,4,5,6,0].map(d=>`<button class="${S.fav[k].includes(d)?'on':''}" data-k="${k}" data-d="${d}">${DOW[d]}</button>`).join('')}</div>`;
+  $('#favBody').innerHTML=`<div class="card"><button class="pick" data-fp="favA"><small>Ville A</small><span>${esc(S.fav.a.label)}</span></button>
+   <div style="height:8px"></div><button class="pick" data-fp="favB"><small>Ville B</small><span>${esc(S.fav.b.label)}</span></button></div>
+   <div class="card"><div class="st">Jours d’aller (A → B)</div>${days('out')}<div class="st" style="margin-top:14px">Jours de retour (B → A)</div>${days('ret')}</div>`;
+}
+$('#favBody').addEventListener('click',e=>{
+  const p=e.target.closest('[data-fp]');if(p)return openPicker(p.dataset.fp);
+  const b=e.target.closest('[data-k]');if(!b)return;
+  const a=S.fav[b.dataset.k],d=+b.dataset.d,i=a.indexOf(d);i<0?a.push(d):a.splice(i,1);a.sort((x,y)=>((x+6)%7)-((y+6)%7));drawFav();
+});
+$('#favOk').onclick=()=>{$('#favSheet').classList.remove('on');render()};
+
+/* ============ Événements ============ */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest]');
+  if(!t||t.closest('.sheet'))return;
+  const d=t.dataset;
+  if(d.tab){S.tab=d.tab;window.scrollTo(0,0);return render()}
+  if(d.pick)return openPicker(d.pick);
+  if(d.date){S.date=d.date;return render()}
+  if(d.go){const g=JSON.parse(d.go);S.date=g.ds;S.from=g.rev?S.fav.b:S.fav.a;S.to=g.rev?S.fav.a:S.fav.b;S.tab='trajet';window.scrollTo(0,0);return render()}
+  if(d.dest){S.to=groupPlace(d.dest)||S.to;S.tab='trajet';window.scrollTo(0,0);return render()}
+  if(d.act==='swap'){[S.from,S.to]=[S.to,S.from];return render()}
+  if(d.act==='alts'){S.alts=!S.alts;return render()}
+  if(d.act==='full'){S.showFull=!S.showFull;return render()}
+  if(d.act==='fav'){drawFav();return $('#favSheet').classList.add('on')}
+  if(d.act==='demo'){S.demo=true;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;return render()}
+});
+document.addEventListener('change',e=>{
+  const m={sDate:['date',String],sMin:['minConn',Number],sMax:['maxWait',Number],sSort:['sort',String],sNot:['notBefore',Number]}[e.target.id];
+  if(!m||!e.target.value)return; S[m[0]]=m[1](e.target.value); render();
+});
+$('#refresh').onclick=()=>{cache.clear();render()};
+$('#demoBtn').onclick=()=>{S.demo=false;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;history.replaceState(null,'',location.pathname);render()};
+render();
+</script>
+</body>
+</html>
