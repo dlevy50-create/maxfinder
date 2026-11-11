@@ -510,6 +510,9 @@ const allSt=(p,alts)=>alts?[...p.stations,...altStations(p)]:p.stations.slice();
 function alertConfig(){return{topic:S.topic,app:location.origin+location.pathname,alerts:S.alerts.map(a=>({name:a.a.label+' → '+a.b.label,o:allSt(a.a,a.alts),d:allSt(a.b,a.alts),days:a.days,t0:a.t0,t1:a.t1}))}}
 function drawAlerts(){
   if(!S.topic){S.topic='maxfinder-'+Array.from({length:12},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('')}
+  if(!S.alertsInit){S.alertsInit=true;if(!S.alerts.length){const f=S.fav;
+    if(f.out.length)S.alerts.push({a:f.a,b:f.b,days:f.out.slice(),t0:0,t1:24,alts:true});
+    if(f.ret.length)S.alerts.push({a:f.b,b:f.a,days:f.ret.slice(),t0:0,t1:24,alts:true})}}
   if(!S.draft||!validPlace(S.draft.a)||!validPlace(S.draft.b))S.draft={a:S.from,b:S.to,days:[5],t0:0,t1:24,alts:true};
   save();
   const d=S.draft,hours=(cur,from,to)=>{let o='';for(let i=from;i<=to;i++)o+=`<option value="${i}" ${i===cur?'selected':''}>${i} h</option>`;return o};
