@@ -89,6 +89,12 @@ nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width
 nav button.on{color:var(--ok);font-weight:700}
 .sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}
 .sheet.on{display:flex}
+#picker{z-index:30}
+.via{grid-column:1/-1;font-size:12px;color:var(--acc);font-weight:600}
+.al{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.al:last-child{border:0}.al button{color:var(--acc);font-weight:700;padding:6px}
+.code{font-family:ui-monospace,Menlo,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:block;margin:8px 0;word-break:break-all;font-size:14px}
+ol.steps{padding-left:20px;margin:8px 0;font-size:14px;line-height:1.5}
 .sheet .bar{display:flex;gap:8px;padding:12px 14px;align-items:center}
 .sheet .bar input{flex:1;font-size:17px}
 .sheet .list{overflow:auto;flex:1;padding:0 14px calc(20px + env(safe-area-inset-bottom))}
@@ -107,7 +113,8 @@ a{color:inherit}
   <div class="row">
     <h1><button data-tab="weekend" aria-label="Retour à l’accueil" style="letter-spacing:inherit;font-weight:inherit">Max<b>Finder</b></button></h1>
     <button class="hbtn" id="demoBtn" hidden>Démo</button>
-    <button class="hbtn" id="refresh">↻ Actualiser</button>
+    <button class="hbtn" data-act="alerts" aria-label="Alertes">🔔 Alertes</button>
+    <button class="hbtn" id="refresh" aria-label="Actualiser">↻</button>
   </div>
   <div class="sub" id="subtitle">Places MAX à 0 € · open data SNCF</div>
 </header>
@@ -122,6 +129,10 @@ a{color:inherit}
 <div class="sheet" id="picker">
   <div class="bar"><input type="search" id="pickQ" placeholder="Ville ou gare" autocomplete="off"><button class="hbtn" style="background:var(--offBg);color:var(--ink)" id="pickX">Fermer</button></div>
   <div class="list" id="pickList"></div>
+</div>
+<div class="sheet" id="alertSheet">
+  <div class="bar"><h1 style="font-size:18px">Mes alertes</h1><button class="hbtn" style="background:var(--offBg);color:var(--ink)" id="alX">Fermer</button></div>
+  <div class="list" id="alBody"></div>
 </div>
 <div class="sheet" id="favSheet">
   <div class="bar"><h1 style="font-size:18px">Mon trajet habituel</h1><button class="hbtn" style="background:var(--ok);color:#fff" id="favOk">OK</button></div>
@@ -157,7 +168,7 @@ const stName=(s,other)=>/^PARIS\b.*intramuros/i.test(s)&&SUD_EST.has(cityKey(oth
 /* gares voisines : clé de ville -> clés des villes proches */
 const NEIGH={
  PARIS:['MASSY','MARNE','AEROPORT','VERSAILLES'],
- MONTPELLIER:['NIMES','SETE','LUNEL','AGDE','BEZIERS'],
+ MONTPELLIER:['NIMES','SETE','LUNEL','AGDE','BEZIERS','NARBONNE','PERPIGNAN'],
  NIMES:['MONTPELLIER','AVIGNON','LUNEL'], BEZIERS:['AGDE','NARBONNE','SETE'], PERPIGNAN:['NARBONNE'],
  LYON:['MACON','VIENNE','VALENCE'], MARSEILLE:['AIX EN','AVIGNON'], 'AIX EN':['MARSEILLE'], AVIGNON:['NIMES','ORANGE','AIX EN'],
  LILLE:['ARRAS','DOUAI','ROUBAIX','TOURCOING','TGV'], BORDEAUX:['LIBOURNE','ANGOULEME'], NANTES:['ANGERS','ST NAZAIRE'],
@@ -168,7 +179,7 @@ const NEIGH={
 /* ============ État ============ */
 const LS='maxfinder.v1';
 let S={tab:'weekend',from:null,to:null,date:iso(today()),alts:true,showFull:false,
-  fav:{a:null,b:null,out:[5,6],ret:[0]},minConn:30,maxWait:180,sort:'arr',notBefore:0,demo:false};
+  fav:{a:null,b:null,out:[5,6],ret:[0]},minConn:30,maxWait:180,sort:'arr',notBefore:0,demo:false,alerts:[],topic:'',draft:null};
 try{Object.assign(S,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
 if(location.hash==='#demo')S.demo=true;
 if(S.date<iso(today()))S.date=iso(today());
@@ -288,12 +299,17 @@ function odCard(){
     ${S.alts&&(a||b)?`<div class="alts">${a?'Départ : '+esc(a)+'. ':''}${b?'Arrivée : '+esc(b)+'.':''}</div>`:''}
   </div>`;
 }
-function trainCard(r,from,to){
+function trainCard(r,from,to,all){
   const ao=!from.stations.includes(r.o), ad=!to.stations.includes(r.d);
+  let via='';
+  if(all&&ad&&!ao){const s=all.find(x=>x.date===r.date&&x.no===r.no&&x.o===r.o&&to.stations.includes(x.d));
+    if(s&&mins(s.arr)<mins(r.arr))via=`<div class="via">↳ Même train : il s’arrête à ${esc(pretty(s.d))} à ${s.arr}${s.max?'':' (complet en MAX jusque-là, mais libre avec ce billet plus long)'}</div>`}
+  if(all&&ao&&!ad){const s=all.find(x=>x.date===r.date&&x.no===r.no&&x.d===r.d&&from.stations.includes(x.o));
+    if(s&&mins(s.dep)>mins(r.dep))via=`<div class="via">↳ Même train : il passe par ${esc(pretty(s.o))} à ${s.dep}</div>`}
   return `<div class="card train ${r.max?'':'full'}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
     <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
-    <div class="meta">${r.max?'<span class="badge">MAX dispo</span>':`<a class="badge off" href="${RT}" target="_blank" rel="noopener">Complet · revérifier ↗</a>`}<br>${fdur(dur(r))} · n° ${esc(r.no)}</div>
+    <div class="meta">${r.max?'<span class="badge">MAX dispo</span>':`<a class="badge off" href="${RT}" target="_blank" rel="noopener">Complet · revérifier ↗</a>`}<br>${fdur(dur(r))} · n° ${esc(r.no)}</div>${via}
   </div>`;
 }
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
@@ -305,6 +321,7 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="badge off">Complet</span> Gris : des trains circulent mais sans place MAX, ou aucun train.</p>
   <p><span class="pill">08:07</span> Horaire plein vert : départ et arrivée dans vos gares principales.</p>
   <p><span class="pill alt">08:10</span> Horaire en pointillés orange : passe par une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
+  <p><span class="via">↳ Même train</span> : le billet va plus loin que votre gare (ex. Paris → Béziers) mais le train s’y arrête : vous pouvez descendre avant.</p>
   <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
 const RT='https://www.maxjeune-tgvinoui.sncf/';
 const RTBTN=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur le simulateur SNCF ↗</a>`;
@@ -376,7 +393,7 @@ const VIEWS={
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
   let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`+(day.length?RTBTN+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`:'');
-  h+=list.map(r=>trainCard(r,S.from,S.to)).join('');
+  h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
   if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.hideFull?'Afficher':'Masquer'} les ${day.length-ok.length} trajets complets</button>`;
@@ -468,9 +485,9 @@ $('#pickX').onclick=()=>$('#picker').classList.remove('on');
 $('#pickList').addEventListener('click',e=>{
   const b=e.target.closest('.opt');if(!b)return;
   const p=b.dataset.g?groupPlace(b.dataset.g):stationPlace(b.dataset.s);
-  if(pickTarget==='favA')S.fav.a=p;else if(pickTarget==='favB')S.fav.b=p;else S[pickTarget]=p;
+  if(pickTarget==='favA')S.fav.a=p;else if(pickTarget==='favB')S.fav.b=p;else if(pickTarget==='alA')S.draft.a=p;else if(pickTarget==='alB')S.draft.b=p;else S[pickTarget]=p;
   $('#picker').classList.remove('on');
-  if(pickTarget.startsWith('fav'))drawFav();else render();
+  if(pickTarget.startsWith('fav'))drawFav();else if(pickTarget.startsWith('al'))drawAlerts();else render();
 });
 
 /* ============ Trajet habituel ============ */
@@ -487,6 +504,47 @@ $('#favBody').addEventListener('click',e=>{
 });
 $('#favOk').onclick=()=>{$('#favSheet').classList.remove('on');render()};
 
+/* ============ Alertes ============ */
+const REPO=(()=>{const m=location.hostname.match(/^(.+)\.github\.io$/),r=location.pathname.split('/')[1];return m&&r?m[1]+'/'+r:'dlevy50-create/maxfinder'})();
+const allSt=(p,alts)=>alts?[...p.stations,...altStations(p)]:p.stations.slice();
+function alertConfig(){return{topic:S.topic,app:location.origin+location.pathname,alerts:S.alerts.map(a=>({name:a.a.label+' → '+a.b.label,o:allSt(a.a,a.alts),d:allSt(a.b,a.alts),days:a.days,t0:a.t0,t1:a.t1}))}}
+function drawAlerts(){
+  if(!S.topic){S.topic='maxfinder-'+Array.from({length:12},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('')}
+  if(!S.draft||!validPlace(S.draft.a)||!validPlace(S.draft.b))S.draft={a:S.from,b:S.to,days:[5],t0:0,t1:24,alts:true};
+  save();
+  const d=S.draft,hours=(cur,from,to)=>{let o='';for(let i=from;i<=to;i++)o+=`<option value="${i}" ${i===cur?'selected':''}>${i} h</option>`;return o};
+  const url='https://github.com/'+REPO+'/new/main/alerts?filename='+encodeURIComponent('alertes-'+Date.now()+'.json')+'&value='+encodeURIComponent(JSON.stringify(alertConfig(),null,1));
+  $('#alBody').innerHTML=`
+   <div class="card"><b>Comment ça marche</b><div class="st" style="margin-top:4px">Chaque matin, après la mise à jour SNCF, vos alertes sont vérifiées et vous recevez une notification pour chaque nouvelle place MAX. Ce n’est pas du temps réel.</div>
+    <ol class="steps"><li>Installez l’app gratuite <b>ntfy</b> (App Store) et abonnez-vous au sujet ci-dessous.</li><li>Créez vos alertes.</li><li>Touchez « Enregistrer sur GitHub », puis le bouton vert <b>Commit changes</b>.</li></ol>
+    <span class="code" id="topic">${esc(S.topic)}</span><button class="btn ghost" style="margin-top:0" data-al="copy">Copier le sujet ntfy</button></div>
+   <h2>Mes alertes (${S.alerts.length})</h2>
+   <div class="card">${S.alerts.map((a,i)=>`<div class="al"><span><b>${esc(a.a.label)} → ${esc(a.b.label)}</b><br><span class="st">${a.days.map(x=>DOW[x]).join(', ')} · départ entre ${a.t0} h et ${a.t1} h${a.alts?' · gares voisines':''}</span></span><button data-al="del" data-i="${i}">Supprimer</button></div>`).join('')||'<div class="st">Aucune alerte pour l’instant.</div>'}</div>
+   <h2>Nouvelle alerte</h2>
+   <div class="card"><button class="pick" data-al="pa"><small>Départ</small><span>${esc(d.a.label)}</span></button><div style="height:8px"></div>
+    <button class="pick" data-al="pb"><small>Arrivée</small><span>${esc(d.b.label)}</span></button>
+    <div class="st" style="margin-top:12px">Jours</div><div class="days">${[1,2,3,4,5,6,0].map(x=>`<button class="${d.days.includes(x)?'on':''}" data-al="day" data-d="${x}">${DOW[x]}</button>`).join('')}</div>
+    <div class="row2"><label>Départ à partir de<select id="alT0">${hours(d.t0,0,23)}</select></label><label>Jusqu’à<select id="alT1">${hours(d.t1,1,24)}</select></label></div>
+    <div class="tog"><button class="sw ${d.alts?'on':''}" data-al="alts"></button><span>Inclure les gares voisines</span></div>
+    ${d.alts&&(altNames(d.a)||altNames(d.b))?`<div class="alts">${esc([altNames(d.a),altNames(d.b)].filter(Boolean).join(' · '))}</div>`:''}
+    <button class="btn" data-al="add">Ajouter cette alerte</button></div>
+   <a class="btn rt" style="margin-top:4px" href="${esc(url)}" target="_blank" rel="noopener">Enregistrer sur GitHub ↗</a>
+   <div class="foot">À refaire après chaque modification de vos alertes. Le sujet ntfy est visible dans votre dépôt public : quiconque le connaît peut lire ces notifications de trains.</div>`;
+}
+$('#alX').onclick=()=>$('#alertSheet').classList.remove('on');
+$('#alBody').addEventListener('click',e=>{
+  const b=e.target.closest('[data-al]');if(!b)return;const k=b.dataset.al,d=S.draft;
+  if(k==='pa')return openPicker('alA'); if(k==='pb')return openPicker('alB');
+  if(k==='day'){const x=+b.dataset.d,i=d.days.indexOf(x);i<0?d.days.push(x):d.days.splice(i,1);d.days.sort((x,y)=>((x+6)%7)-((y+6)%7))}
+  if(k==='alts')d.alts=!d.alts;
+  if(k==='del')S.alerts.splice(+b.dataset.i,1);
+  if(k==='add'){if(!d.days.length||d.t1<=d.t0){b.textContent=!d.days.length?'Choisissez au moins un jour':'Plage horaire invalide';return}
+    S.alerts.push(JSON.parse(JSON.stringify(d)))}
+  if(k==='copy'){navigator.clipboard&&navigator.clipboard.writeText(S.topic).then(()=>{b.textContent='Copié ✓'}).catch(()=>{b.textContent='Copie impossible : recopiez-le à la main'});return}
+  drawAlerts();
+});
+$('#alBody').addEventListener('change',e=>{if(e.target.id==='alT0')S.draft.t0=+e.target.value;if(e.target.id==='alT1')S.draft.t1=+e.target.value;save()});
+
 /* ============ Événements ============ */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest]');
@@ -500,6 +558,7 @@ document.addEventListener('click',e=>{
   if(d.act==='swap'){[S.from,S.to]=[S.to,S.from];return render()}
   if(d.act==='alts'){S.alts=!S.alts;return render()}
   if(d.act==='full'){S.hideFull=!S.hideFull;return render()}
+  if(d.act==='alerts'){drawAlerts();return $('#alertSheet').classList.add('on')}
   if(d.act==='fav'){drawFav();return $('#favSheet').classList.add('on')}
   if(d.act==='demo'){S.demo=true;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;return render()}
 });
