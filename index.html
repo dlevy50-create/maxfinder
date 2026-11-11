@@ -74,6 +74,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)
 .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .pill{font-size:13px;font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:8px;background:var(--okBg);color:var(--ok);font-weight:600}
 .pill.alt{background:none;border:1px dashed var(--acc);color:var(--acc)}
+.pill.nw{box-shadow:0 0 0 3px rgba(228,87,46,.4)}
 .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 select,input[type=date],input[type=search]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
 .row2 label{font-size:11px;color:var(--mut);display:flex;flex-direction:column;gap:3px;flex:1;text-transform:uppercase;letter-spacing:.05em}
@@ -389,7 +390,10 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="badge">3 trains MAX</span> Vert : au moins 3 trains avec des places MAX.</p>
   <p><span class="badge warn">1 train MAX</span> Orange : seulement 1 ou 2 trains, à réserver vite.</p>
   <p><span class="badge off">Complet</span> Gris : des trains circulent mais sans place MAX, ou aucun train.</p>
-  <p><b>Sur la frise horaire</b> (de 5 h à minuit), un point = un train :</p>
+  <p><b>Sur l’accueil</b>, chaque horaire affiché est un train avec place MAX :</p>
+  <p><span class="pill">08:07</span> Fond vert : entre vos gares principales.</p>
+  <p><span class="pill alt">08:10</span> Pointillés orange : via une gare voisine (Massy, Nîmes…).</p>
+  <p><b>Dans Calendrier, sur la frise horaire</b> (de 5 h à minuit), un point = un train :</p>
   <p><i class="dot"></i>Point vert plein : place MAX entre vos gares principales.</p>
   <p><i class="dot alt"></i>Cercle orange : place MAX via une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
   <p><i class="dot full"></i>Petit point gris : train complet en MAX ce matin.</p>
@@ -473,7 +477,8 @@ const VIEWS={
       h+=`<button class="wkrow" data-go='${esc(JSON.stringify({ds:it.ds,rev:it.dir==='Retour'}))}'>
         <div class="dir">${it.dir} · ${esc(it.from.label)} → ${esc(it.to.label)}</div>
         <div class="top"><span>${fdate(it.ds)}${nw?`<span class="new">${nw} NOUVEAU${nw>1?'X':''}</span>`:''}</span><span class="badge ${n>2?'':n?'warn':'off'}">${n?n+' train'+(n>1?'s':'')+' MAX':it.any?'Complet':'Pas de données'}</span></div>
-        ${it.any?timeline(it.day,it.from,it.to):''}
+        ${n?`<div class="pills">${it.u.slice(0,10).map(r=>`<span class="pill ${it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}${n>10?`<span class="st">+${n-10}</span>`:''}</div>`
+           :it.any?`<div class="st" style="margin-top:5px">Touchez pour revérifier ou tenter un découpage →</div>`:''}
       </button>`;
     }
     h+='</div>';
