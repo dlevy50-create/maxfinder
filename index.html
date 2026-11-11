@@ -309,7 +309,7 @@ function trainCard(r,from,to,all){
   return `<div class="card train ${r.max?'':'full'}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
     <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
-    <div class="meta">${r.max?'<span class="badge">MAX dispo</span>':`<a class="badge off" href="${RT}" target="_blank" rel="noopener">Complet · revérifier ↗</a>`}<br>${fdur(dur(r))} · n° ${esc(r.no)}</div>${via}
+    <div class="meta">${r.max?'<span class="badge">MAX dispo</span>':`<a class="badge off" href="${deep(from,to,r.date,r.dep)||RT}" target="_blank" rel="noopener">Complet · revérifier ↗</a>`}<br>${fdur(dur(r))} · n° ${esc(r.no)}</div>${via}
   </div>`;
 }
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
@@ -324,7 +324,13 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="via">↳ Même train</span> : le billet va plus loin que votre gare (ex. Paris → Béziers) mais le train s’y arrête : vous pouvez descendre avant.</p>
   <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
 const RT='https://www.sncf-connect.com/app/home/search', SIMU='https://www.maxjeune-tgvinoui.sncf/';
-const RTBTN=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a><a class="st" style="display:block;text-align:center;margin:8px 0 0" href="${SIMU}" target="_blank" rel="noopener">ou sur le simulateur MAX de la SNCF ↗</a>`;
+/* Essai : lien SNCF Connect prérempli (format non documenté par la SNCF), seulement pour les gares dont le code est connu */
+const CODES={PARIS:'FRPLY',MONTPELLIER:'FRMPL'};
+const deep=(from,to,date,dep)=>{const o=CODES[from.key],d=CODES[to.key];if(!o||!d)return null;
+  return 'https://www.sncf-connect.com/app/redirect?redirection_type=SEARCH&origin_transporter_code='+o+'&destination_transporter_code='+d+'&outward_date='+date+'-'+(dep?dep.slice(0,2):'06')+'-00'};
+const rtBtn=(from,to,date)=>{const u=deep(from,to,date);return `<a class="btn rt" href="${u||RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a>
+  <div class="st" style="text-align:center;margin:8px 0 0">${u?`Trajet et date préremplis (essai). Si ça n’ouvre pas la bonne recherche : <a href="${RT}" target="_blank" rel="noopener">formulaire vide</a> · `:''}<a href="${SIMU}" target="_blank" rel="noopener">simulateur MAX ↗</a></div>`};
+const RTBTN_OLD=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a><a class="st" style="display:block;text-align:center;margin:8px 0 0" href="${SIMU}" target="_blank" rel="noopener">ou sur le simulateur MAX de la SNCF ↗</a>`;
 const BOOK=`<a class="btn" href="${RT}" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
 
 /* ============ Vues ============ */
@@ -392,7 +398,7 @@ const VIEWS={
   }
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
-  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`+(day.length?RTBTN+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`:'');
+  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`+(day.length?rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`:'');
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
@@ -441,7 +447,7 @@ const VIEWS={
     <div class="wait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
     <div class="leg"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))}</span><span class="st">n° ${esc(x.b.no)}</span><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span><span></span></div>
   </div>`).join('');
-  h+=RTBTN;
+  h+=rtBtn(S.from,S.to,S.date);
   if(its.length)h+=BOOK+`<div class="foot">Chaque tronçon se réserve séparément. En cas de retard, la correspondance n’est pas garantie entre deux billets distincts.</div>`;
   return h;
  },
