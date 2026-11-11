@@ -18,7 +18,7 @@
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0b1517; --card:#14272b; --ink:#e9f1ef; --mut:#8fa3a5; --line:#21383c;
-  --brand:#0b1f22; --okBg:#0f3a2e; --ok:#47d6a6; --warnBg:#3b2c0e; --warn:#f0b24a; --offBg:#1b2c2f; --off:#6f8386;
+  --brand:#0b1f22; --acc:#ff7a52; --okBg:#0f3a2e; --ok:#47d6a6; --warnBg:#3b2c0e; --warn:#f0b24a; --offBg:#1b2c2f; --off:#6f8386;
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
@@ -29,7 +29,7 @@ header .row{display:flex;align-items:center;gap:10px}
 h1{font-size:20px;margin:0;letter-spacing:-.02em;flex:1}
 h1 b{color:#5fe0b4}
 .hbtn{font-size:13px;padding:7px 11px;border-radius:99px;background:rgba(255,255,255,.12);color:var(--brandInk)}
-.sub{font-size:12px;opacity:.7;margin-top:3px}
+.sub{font-size:12px;color:rgba(234,246,242,.72);margin-top:4px}
 main{padding:14px 14px 20px;max-width:640px;margin:0 auto}
 .card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px;border:1px solid var(--line)}
 .od{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:center}
@@ -104,6 +104,38 @@ ol.steps{padding-left:20px;margin:8px 0;font-size:14px;line-height:1.5}
 .days button{flex:1;padding:9px 0;border-radius:10px;background:var(--offBg);color:var(--off);font-weight:600;font-size:13px}
 .days button.on{background:var(--ok);color:#fff}
 .lg summary{font-weight:600;cursor:pointer}.lg p{margin:10px 0 0;font-size:13px;line-height:1.5}.lg .badge,.lg .pill{margin-right:6px}
+.hero{background:linear-gradient(145deg,#0f2a2e,#1a4d50);color:#eaf6f2;border:0;padding:16px}
+.hero h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.09em;opacity:.75;font-weight:600}
+.hero .legs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hleg{display:block;text-align:left;background:rgba(255,255,255,.1);border-radius:13px;padding:11px;color:inherit;width:100%}
+.hleg .d{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.72}
+.hleg .big{font-size:27px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;margin:4px 0 3px}
+.hleg .s{font-size:12px;opacity:.85;line-height:1.35}
+.hleg.none .big{font-size:18px;opacity:.75}
+.tl{position:relative;height:31px;margin:9px 6px 0}
+.tl::before{content:"";position:absolute;left:-4px;right:-4px;top:9px;height:2px;background:var(--line);border-radius:2px}
+.tl i{position:absolute;top:3px;width:14px;height:14px;border-radius:50%;margin-left:-7px;background:var(--ok);border:2px solid var(--card);box-sizing:border-box}
+.tl i.alt{background:var(--card);border-color:var(--acc)}
+.tl i.full{background:var(--off);opacity:.5;width:8px;height:8px;top:6px;margin-left:-4px;border:0}
+.tl i.nw{box-shadow:0 0 0 3px rgba(228,87,46,.4)}
+.tl span{position:absolute;top:19px;font-size:9px;color:var(--mut);transform:translateX(-50%)}
+.dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-2px;margin-right:6px;background:var(--ok);box-sizing:border-box}
+.dot.alt{background:var(--card);border:2px solid var(--acc)}.dot.full{background:var(--off);opacity:.5;width:9px;height:9px}.dot.nw{box-shadow:0 0 0 3px rgba(228,87,46,.4)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font-size:13px;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.new{font-size:10px;font-weight:800;color:#fff;background:var(--acc);border-radius:99px;padding:2px 6px;margin-left:6px;vertical-align:2px;letter-spacing:.03em;white-space:nowrap}
+.age{font-weight:700;padding:1px 7px;border-radius:99px;margin-left:4px;opacity:1}
+.age.g{background:#1d6b55;color:#d9fff1}.age.o{background:#8a5a00;color:#ffe9bd}.age.r{background:#a3341a;color:#ffe1d8}
+.route{position:relative;padding-left:24px}
+.route::before{content:"";position:absolute;left:6px;top:10px;bottom:10px;width:2px;background:var(--ok)}
+.rstop{position:relative;display:flex;gap:10px;align-items:baseline;font-size:14px;padding:3px 0}
+.rstop::before{content:"";position:absolute;left:-23px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--ok);box-sizing:border-box}
+.rstop b{font-variant-numeric:tabular-nums;width:46px;flex:none}
+.rwait{position:relative;font-size:12px;color:var(--mut);padding:7px 0}
+.rwait::before{content:"";position:absolute;left:-20px;top:0;bottom:0;width:6px;background:var(--card)}
+.rwait::after{content:"";position:absolute;left:-18px;top:1px;bottom:1px;border-left:2px dotted var(--mut)}
+.ical{font-size:12px;color:var(--mut)}
 .foot{font-size:11px;color:var(--mut);text-align:center;padding:8px 20px 0;line-height:1.5}
 a{color:inherit}
 </style>
@@ -179,22 +211,34 @@ const NEIGH={
 /* ============ État ============ */
 const LS='maxfinder.v1';
 let S={tab:'weekend',from:null,to:null,date:iso(today()),alts:true,showFull:false,
-  fav:{a:null,b:null,out:[5,6],ret:[0]},minConn:30,maxWait:180,sort:'arr',notBefore:0,demo:false,alerts:[],topic:'',draft:null};
+  fav:null,favs:null,favI:0,filt:{main:false,eve:false,morn:false},minConn:30,maxWait:180,sort:'arr',notBefore:0,demo:false,alerts:[],topic:'',draft:null};
 try{Object.assign(S,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
-if(location.hash==='#demo')S.demo=true;
+S.demo=location.hash==='#demo';
+if(!Array.isArray(S.favs)||!S.favs.length)S.favs=[S.fav&&S.fav.out?S.fav:{a:null,b:null,out:[5,6],ret:[0]}];
+delete S.fav; if(!(S.favI>=0&&S.favI<S.favs.length))S.favI=0;
+if(!S.filt)S.filt={main:false,eve:false,morn:false};
+const FAV=()=>S.favs[S.favI];
 if(S.date<iso(today()))S.date=iso(today());
-const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+const save=()=>{if(S.demo)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
 let STATIONS=[], GROUPS=new Map();
 
 /* ============ Données ============ */
 const BASE='https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/tgvmax';
 const qs=s=>'"'+String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
 const cache=new Map();
-async function getJSON(url){
+let STALE=0;
+function pget(k){try{const m=JSON.parse(localStorage.getItem(LS+'.dc')||'{}'),e=m[k];if(!e)return null;return{t:e.t,v:JSON.parse(localStorage.getItem(LS+'.d.'+e.i))}}catch(e){return null}}
+function pset(k,v,retry){try{const s=JSON.stringify(v);if(s.length>600000)return;const m=JSON.parse(localStorage.getItem(LS+'.dc')||'{}');let e=m[k];
+  if(!e){const ks=Object.keys(m);if(ks.length>=8){const day=ks.filter(x=>!x.endsWith('|30j')),pool=day.length?day:ks,old=pool.sort((a,b)=>m[a].t-m[b].t)[0];e={i:m[old].i};delete m[old]}else e={i:[0,1,2,3,4,5,6,7].find(i=>!ks.some(x=>m[x].i===i))}}
+  e.t=Date.now();m[k]=e;localStorage.setItem(LS+'.d.'+e.i,s);localStorage.setItem(LS+'.dc',JSON.stringify(m))}
+  catch(x){if(retry)return;try{const m=JSON.parse(localStorage.getItem(LS+'.dc')||'{}');for(const q of Object.keys(m))if(!q.endsWith('|30j')){localStorage.removeItem(LS+'.d.'+m[q].i);delete m[q]}localStorage.setItem(LS+'.dc',JSON.stringify(m))}catch(y){}pset(k,v,true)}}
+async function getJSON(url,pkey){
   const c=cache.get(url); if(c&&Date.now()-c.t<5*60e3)return c.v;
-  const r=await fetch(url,{headers:{Accept:'application/json'}});
-  if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(e){} throw new Error('SNCF open data a répondu '+r.status+(m?' — '+m:''))}
-  const v=await r.json(); cache.set(url,{t:Date.now(),v}); return v;
+  try{
+    const r=await fetch(url,{headers:{Accept:'application/json'}});
+    if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(e){} throw new Error('SNCF open data a répondu '+r.status+(m?' — '+m:''))}
+    const v=await r.json(); cache.set(url,{t:Date.now(),v}); if(pkey)pset(pkey,v); return v;
+  }catch(e){const o=pkey&&pget(pkey);if(o){STALE=STALE?Math.min(STALE,o.t):o.t;return o.v}throw e}
 }
 const norm=x=>({date:String(x.date).slice(0,10),no:String(x.train_no),o:x.origine,d:x.destination,
   dep:String(x.heure_depart).slice(0,5),arr:String(x.heure_arrivee).slice(0,5),max:String(x.od_happy_card).toUpperCase()==='OUI'});
@@ -206,7 +250,8 @@ async function trains({origins,dests,from,to,onlyMax}){
   p.push(from===to?`date=date'${from}'`:`date>=date'${from}' and date<=date'${to}'`);
   if(onlyMax)p.push('od_happy_card="OUI"');
   const url=BASE+'/exports/json?limit=-1&select='+encodeURIComponent('date,train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card')+'&where='+encodeURIComponent(p.join(' and '));
-  const rows=(await getJSON(url)).map(norm), seen=new Set();
+  const pkey=(origins||[]).join(',')+'>'+(dests||[]).join(',')+'|'+(onlyMax?1:0)+'|'+(from===to?from:'30j');
+  const rows=(await getJSON(url,pkey)).map(norm), seen=new Set();
   return rows.filter(r=>{const k=[r.date,r.no,r.o,r.d,r.dep].join('|');if(seen.has(k))return false;seen.add(k);return true});
 }
 async function loadStations(){
@@ -214,13 +259,13 @@ async function loadStations(){
   else{
     let ck=null;try{ck=JSON.parse(localStorage.getItem(LS+'.st')||'null')}catch(e){}
     if(ck&&Date.now()-ck.t<7*864e5&&ck.v.length>20)STATIONS=ck.v;
-    else{
+    else try{
       let res;
       try{res=(await getJSON(BASE+'/records?select=origine&group_by=origine&limit=2000')).results}
       catch(e){res=await getJSON(BASE+'/exports/json?select=origine&group_by=origine&limit=-1')}
       STATIONS=res.map(x=>x.origine).filter(Boolean).sort();
       try{localStorage.setItem(LS+'.st',JSON.stringify({t:Date.now(),v:STATIONS}))}catch(e){}
-    }
+    }catch(e){if(ck&&ck.v&&ck.v.length>20)STATIONS=ck.v;else throw e}
   }
   GROUPS=new Map();
   for(const s of STATIONS){const k=cityKey(s);(GROUPS.get(k)||GROUPS.set(k,[]).get(k)).push(s)}
@@ -243,8 +288,8 @@ const altNames=p=>[...new Set(altStations(p).map(pretty))].join(', ');
 function validPlace(p){return p&&p.stations&&p.stations.every(s=>STATIONS.includes(s))}
 function ensureDefaults(){
   const P=groupPlace('PARIS')||stationPlace(STATIONS[0]), M=groupPlace('MONTPELLIER')||stationPlace(STATIONS[1]||STATIONS[0]);
-  if(!validPlace(S.fav.a))S.fav.a=P; if(!validPlace(S.fav.b))S.fav.b=M;
-  if(!validPlace(S.from))S.from=S.fav.a; if(!validPlace(S.to))S.to=S.fav.b;
+  for(const f of S.favs){if(!validPlace(f.a))f.a=P; if(!validPlace(f.b))f.b=M}
+  if(!validPlace(S.from))S.from=FAV().a; if(!validPlace(S.to))S.to=FAV().b;
 }
 
 /* ============ Mode démo (données fictives) ============ */
@@ -308,10 +353,35 @@ function trainCard(r,from,to,all){
     if(s&&mins(s.dep)>mins(r.dep))via=`<div class="via">↳ Même train : il passe par ${esc(pretty(s.o))} à ${s.dep}</div>`}
   return `<div class="card train ${r.max?'':'full'}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
-    <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
-    <div class="meta"><a class="badge ${r.max?'':'off'}" href="${deepTrain(r)}" target="_blank" rel="noopener">${r.max?'MAX dispo · réserver ↗':'Complet · revérifier ↗'}</a><br>${fdur(dur(r))} · n° ${esc(r.no)}</div>${via}
+    <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}${r.isNew?'<span class="new">NOUVEAU</span>':''}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
+    <div class="meta"><a class="badge ${r.max?'':'off'}" href="${deepTrain(r)}" target="_blank" rel="noopener">${r.max?'MAX dispo · réserver ↗':'Complet · revérifier ↗'}</a><br>${fdur(dur(r))} · n° ${esc(r.no)}${r.max?`<br><a class="ical" href="${icsLink(r)}" download="train-${r.date}.ics">📅 Ajouter à l’agenda</a>`:''}</div>${via}
   </div>`;
 }
+const stampDay=()=>{const n=new Date(),d=new Date(n);if(n.getHours()<7)d.setDate(d.getDate()-1);return iso(d)};
+function markNew(sig,rows){
+  try{
+    sig=(S.demo?'demo:':'')+String(hash(sig))+sig.length;
+    const all=JSON.parse(localStorage.getItem(LS+'.snap')||'{}'),st=stampDay(),key=r=>r.date+'|'+r.no+'|'+r.o+'|'+r.d,keys=rows.filter(r=>r.max).map(key);
+    let e=all[sig]; if(!e)e={cur:{s:st,k:keys}}; else if(e.cur.s!==st)e={prev:e.cur,cur:{s:st,k:keys}}; else e.cur.k=keys;
+    e.t=Date.now(); all[sig]=e;
+    const ks=Object.keys(all); if(ks.length>6)delete all[ks.sort((a,b)=>all[a].t-all[b].t)[0]];
+    try{localStorage.setItem(LS+'.snap',JSON.stringify(all))}catch(x){localStorage.removeItem(LS+'.snap')}
+    if(e.prev){const p=new Set(e.prev.k),lim=iso(addDays(parse(e.prev.s),HORIZON-1));rows.forEach(r=>{if(r.max&&r.date<=lim&&!p.has(key(r)))r.isNew=true})}
+  }catch(x){}
+  return rows;
+}
+const sigOf=(A,B)=>A.join(',')+'>'+B.join(',');
+/* frise horaire 5 h → minuit */
+function timeline(rows,from,to){
+  const pos=t=>Math.max(0,Math.min(100,(mins(t)-300)/1140*100)).toFixed(1), best=new Map();
+  for(const r of rows){const k=r.no+'|'+r.dep,main=from.stations.includes(r.o)&&to.stations.includes(r.d),sc=(r.max?2:0)+(main?1:0),b=best.get(k);
+    if(!b||sc>b.sc)best.set(k,{sc,dep:r.dep,cls:(r.max?(main?'':'alt'):'full')+(r.isNew?' nw':'')})}
+  return `<div class="tl">${[...best.values()].sort((a,b)=>a.sc-b.sc).map(x=>`<i class="${x.cls}" style="left:${pos(x.dep)}%"></i>`).join('')}${[6,9,12,15,18,21].map(x=>`<span style="left:${pos(x+':00')}%">${x} h</span>`).join('')}</div>`;
+}
+const icsLink=r=>{const z=s=>s.replace(/[-:]/g,''),d2=mins(r.arr)<mins(r.dep)?iso(addDays(parse(r.date),1)):r.date;
+  return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MaxFinder//FR','BEGIN:VEVENT','UID:'+r.date+'-'+r.no+'-'+z(r.dep)+'@maxfinder','DTSTAMP:'+z(r.date)+'T000000Z',
+   'DTSTART;TZID=Europe/Paris:'+z(r.date)+'T'+z(r.dep)+'00','DTEND;TZID=Europe/Paris:'+z(d2)+'T'+z(r.arr)+'00','SUMMARY:Train '+stName(r.o,r.d)+' → '+stName(r.d,r.o)+' (n° '+r.no+')',
+   'DESCRIPTION:Place MAX repérée dans MaxFinder. À réserver sur SNCF Connect.','END:VEVENT','END:VCALENDAR'].join('\r\n'))};
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
 const byDep=(a,b)=>mins(a.dep)-mins(b.dep);
 const FOOT=`<div class="foot">Données : jeu « tgvmax » de l’open data SNCF (ODbL), mis à jour par la SNCF — ce n’est pas du temps réel, vérifiez sur SNCF Connect avant de compter sur une place. Appli indépendante, non affiliée à SNCF.</div>`;
@@ -319,8 +389,11 @@ const LEGEND=open=>`<details class="card lg" ${open?'open':''}><summary>Légende
   <p><span class="badge">3 trains MAX</span> Vert : au moins 3 trains avec des places MAX.</p>
   <p><span class="badge warn">1 train MAX</span> Orange : seulement 1 ou 2 trains, à réserver vite.</p>
   <p><span class="badge off">Complet</span> Gris : des trains circulent mais sans place MAX, ou aucun train.</p>
-  <p><span class="pill">08:07</span> Horaire plein vert : départ et arrivée dans vos gares principales.</p>
-  <p><span class="pill alt">08:10</span> Horaire en pointillés orange : passe par une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
+  <p><b>Sur la frise horaire</b> (de 5 h à minuit), un point = un train :</p>
+  <p><i class="dot"></i>Point vert plein : place MAX entre vos gares principales.</p>
+  <p><i class="dot alt"></i>Cercle orange : place MAX via une gare voisine (Massy, Nîmes…). Dans les listes, la gare voisine est écrite en orange.</p>
+  <p><i class="dot full"></i>Petit point gris : train complet en MAX ce matin.</p>
+  <p><i class="dot nw"></i>Halo orange et étiquette <span class="new" style="margin:0">NOUVEAU</span> : place apparue depuis la mise à jour précédente (visible à partir de votre 2ᵉ jour d’utilisation).</p>
   <p><span class="via">↳ Même train</span> : le billet va plus loin que votre gare (ex. Paris → Béziers) mais le train s’y arrête : vous pouvez descendre avant.</p>
   <p class="st">« Paris » regroupe toutes les gares parisiennes (Gare de Lyon, Montparnasse, Nord, Est…) : les données SNCF ne les distinguent pas. Elles sont mises à jour une fois par jour, le matin : une place libérée dans la journée peut apparaître sur SNCF Connect avant d’apparaître ici.</p></details>`;
 const RT='https://www.sncf-connect.com/app/home/search', SIMU='https://www.maxjeune-tgvinoui.sncf/';
@@ -334,66 +407,87 @@ const stCode=(s,other)=>/^PARIS\b.*intramuros/i.test(s)?(SUD_EST.has(cityKey(oth
 const deepTrain=r=>{const o=stCode(r.o,r.d),d=stCode(r.d,r.o);return o&&d?'https://www.sncf-connect.com/app/redirect?redirection_type=SEARCH&origin_transporter_code='+o+'&destination_transporter_code='+d+'&outward_date='+r.date+'-'+r.dep.slice(0,2)+'-00':RT};
 const rtBtn=(from,to,date)=>{const u=deep(from,to,date);return `<a class="btn rt" href="${u||RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a>
   <div class="st" style="text-align:center;margin:8px 0 0">${u?`Trajet et date préremplis (essai). Si ça n’ouvre pas la bonne recherche : <a href="${RT}" target="_blank" rel="noopener">formulaire vide</a> · `:''}<a href="${SIMU}" target="_blank" rel="noopener">simulateur MAX ↗</a></div>`};
-const RTBTN_OLD=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a><a class="st" style="display:block;text-align:center;margin:8px 0 0" href="${SIMU}" target="_blank" rel="noopener">ou sur le simulateur MAX de la SNCF ↗</a>`;
+const _unused=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a><a class="st" style="display:block;text-align:center;margin:8px 0 0" href="${SIMU}" target="_blank" rel="noopener">ou sur le simulateur MAX de la SNCF ↗</a>`;
 const BOOK=`<a class="btn" href="${RT}" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
 
 /* ============ Vues ============ */
-let token=0,FRESH='',freshAsked=false;
+let token=0,FRESH=0,freshAsked=false,SUB=()=>{};
 async function render(){
   const my=++token, v=$('#view');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
-  $('#demoBtn').hidden=!S.demo; $('#subtitle').textContent=S.demo?'MODE DÉMO — données fictives':'Places MAX à 0 € · '+(FRESH||'open data SNCF');
+  $('#demoBtn').hidden=!S.demo; STALE=0;
+  const sub=()=>{const el=$('#subtitle');
+    if(S.demo)return el.textContent='MODE DÉMO — données fictives';
+    if(STALE){const t=new Date(STALE);return el.innerHTML='<span class="age r" style="margin:0">HORS LIGNE</span> données enregistrées le '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes())}
+    if(!FRESH)return el.textContent='Places MAX à 0 € · open data SNCF';
+    const hrs=Math.max(0,Math.round((Date.now()-FRESH)/36e5)),t=new Date(FRESH);
+    el.innerHTML='Données SNCF du '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes())+'<span class="age '+(hrs<8?'g':hrs<26?'o':'r')+'">il y a '+(hrs<1?'moins d’1 h':hrs+' h')+'</span>'};
+  SUB=sub; sub();
   if(!S.demo&&!FRESH&&!freshAsked){freshAsked=true;getJSON(BASE).then(m=>{const d=m&&m.metas&&m.metas.default||{},t=new Date(d.data_processed||d.modified||'');
-    if(!isNaN(t)){FRESH='données SNCF du '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes());$('#subtitle').textContent='Places MAX à 0 € · '+FRESH}}).catch(()=>{})}
+    if(!isNaN(t)){FRESH=+t;sub()}else freshAsked=false}).catch(()=>{freshAsked=false})}
   save();
   try{
     if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
     ensureDefaults();
     const html=await VIEWS[S.tab](h=>{if(my===token)v.innerHTML=h});
-    if(my===token)v.innerHTML=html+FOOT;
+    if(my===token){v.innerHTML=html+FOOT;SUB()}
   }catch(e){console.error(e);if(my===token)v.innerHTML=errorBox(e)}
 }
 const range=()=>({from:iso(today()),to:iso(addDays(today(),HORIZON))});
 const VIEWS={
- /* ---- Week-ends : trajet habituel ---- */
+ /* ---- Week-ends : trajets habituels ---- */
  async weekend(paint){
-  const f=S.fav, head=`<div class="card"><div class="sum" style="margin:0"><div><div class="st">Mon trajet habituel</div><div class="t">${esc(f.a.label)} ⇄ ${esc(f.b.label)}</div>
-    <div class="st">Aller ${f.out.map(d=>DOW[d]).join(', ')||'—'} · Retour ${f.ret.map(d=>DOW[d]).join(', ')||'—'}${S.alts?' · gares voisines incluses':''}</div></div>
+  const f=FAV(), favChips=`<div class="chips">${S.favs.map((x,i)=>`<button class="chip ${i===S.favI?'on':''}" data-favi="${i}">${esc(x.a.label)} ⇄ ${esc(x.b.label)}</button>`).join('')}<button class="chip" data-act="favadd">＋ Trajet</button></div>`;
+  const head=favChips+`<div class="card"><div class="sum" style="margin:0"><div><div class="st">Aller ${f.out.map(d=>DOW[d]).join(', ')||'—'} · Retour ${f.ret.map(d=>DOW[d]).join(', ')||'—'}</div>
+    <div class="st">${S.alts?'Gares voisines incluses':'Gares principales seulement'}</div></div>
     <button class="hbtn" style="background:var(--offBg);color:var(--ink)" data-act="fav">Modifier</button></div></div>`;
   paint(head+loading('Recherche des places MAX sur 30 jours…'));
   const R=range(), A=stOf(f.a), B=stOf(f.b);
   const [out,ret]=await Promise.all([trains({origins:A,dests:B,...R}),trains({origins:B,dests:A,...R})]);
-  const weeks=new Map();
+  markNew(sigOf(A,B),out); markNew(sigOf(B,A),ret);
+  const weeks=new Map(), uniq=rows=>{const seen=new Set();return rows.filter(r=>{const k=r.no+r.dep;if(seen.has(k))return false;seen.add(k);return true})};
   for(let i=0;i<=HORIZON;i++){
     const d=addDays(today(),i),w=d.getDay(),ds=iso(d);
     const mon=iso(addDays(d,-((w+6)%7)));
-    const push=(dir,rows,from,to)=>{(weeks.get(mon)||weeks.set(mon,[]).get(mon)).push({ds,dir,from,to,rows:rows.filter(r=>r.date===ds&&r.max).sort(byDep),any:rows.some(r=>r.date===ds)})};
+    const push=(dir,rows,from,to)=>{const day=rows.filter(r=>r.date===ds).sort(byDep);(weeks.get(mon)||weeks.set(mon,[]).get(mon)).push({ds,dir,from,to,day,u:uniq(day.filter(r=>r.max)),any:day.length>0})};
     if(f.out.includes(w))push('Aller',out,f.a,f.b);
     if(f.ret.includes(w))push('Retour',ret,f.b,f.a);
   }
   let h=head;
   if(!weeks.size)h+=`<div class="msg">Choisissez au moins un jour d’aller ou de retour.</div>`;
+  /* carte « prochain week-end » */
+  const first=[...weeks.values()][0];
+  if(first){
+    const leg=dir=>{const its=first.filter(x=>x.dir===dir); if(!its.length)return '';
+      const it=its.find(x=>x.u.length)||its[0], main=it.u.find(r=>it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)), r=main||it.u[0], d=parse(it.ds);
+      const go=esc(JSON.stringify({ds:it.ds,rev:dir==='Retour'}));
+      return r?`<button class="hleg" data-go='${go}'><div class="d">${dir} · ${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div><div class="big">${r.dep}</div><div class="s">${esc(stName(r.o,r.d))} → ${esc(stName(r.d,r.o))}<br>arrivée ${r.arr} · ${it.u.length} train${it.u.length>1?'s':''} MAX</div></button>`
+        :`<button class="hleg none" data-go='${go}'><div class="d">${dir} · ${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div><div class="big">${it.any?'Complet':'Pas de train'}</div><div class="s">${it.any?'Touchez pour revérifier ou tenter un découpage':'Aucune donnée ce jour-là'}</div></button>`};
+    h+=`<div class="card hero"><h3>Prochain week-end · ${esc(f.a.label)} ⇄ ${esc(f.b.label)}</h3><div class="legs">${leg('Aller')}${leg('Retour')}</div></div>`;
+  }
   for(const [mon,items] of weeks){
     const m=parse(mon);
     h+=`<div class="card wk"><h3>Semaine du ${m.getDate()} ${MON[m.getMonth()]}</h3>`;
     for(const it of items){
-      const seen=new Set(),u=it.rows.filter(r=>{const k=r.no+r.dep;if(seen.has(k))return false;seen.add(k);return true});
-      const n=u.length;
+      const n=it.u.length, nw=it.u.filter(r=>r.isNew).length;
       h+=`<button class="wkrow" data-go='${esc(JSON.stringify({ds:it.ds,rev:it.dir==='Retour'}))}'>
         <div class="dir">${it.dir} · ${esc(it.from.label)} → ${esc(it.to.label)}</div>
-        <div class="top"><span>${fdate(it.ds)}</span><span class="badge ${n>2?'':n?'warn':'off'}">${n?n+' train'+(n>1?'s':'')+' MAX':it.any?'Complet':'Pas de données'}</span></div>
-        ${n?`<div class="pills">${u.slice(0,8).map(r=>`<span class="pill ${it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)?'':'alt'}">${r.dep}</span>`).join('')}${n>8?`<span class="st">+${n-8}</span>`:''}</div>`
-           :it.any?`<div class="st" style="margin-top:5px">Touchez pour tenter un découpage →</div>`:''}
+        <div class="top"><span>${fdate(it.ds)}${nw?`<span class="new">${nw} NOUVEAU${nw>1?'X':''}</span>`:''}</span><span class="badge ${n>2?'':n?'warn':'off'}">${n?n+' train'+(n>1?'s':'')+' MAX':it.any?'Complet':'Pas de données'}</span></div>
+        ${it.any?timeline(it.day,it.from,it.to):''}
       </button>`;
     }
     h+='</div>';
   }
-  return h+LEGEND(true);
+  return h+LEGEND(false);
  },
  /* ---- Calendrier + trains du jour ---- */
  async trajet(paint){
-  const head=odCard(); paint(head+loading());
-  const rows=await trains({origins:stOf(S.from),dests:stOf(S.to),...range()});
+  const F=S.filt, chip=(k,l)=>`<button class="chip ${F[k]?'on':''}" data-filt="${k}">${l}</button>`;
+  const head=odCard()+`<div class="chips">${chip('main','Gares principales seulement')}${chip('eve','Départ après 17 h')}${chip('morn','Arrivée avant midi')}</div>`;
+  paint(head+loading());
+  const A=stOf(S.from),B=stOf(S.to);
+  let rows=markNew(sigOf(A,B),await trains({origins:A,dests:B,...range()}));
+  rows=rows.filter(r=>(!F.main||(S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)))&&(!F.eve||mins(r.dep)>=1020)&&(!F.morn||(mins(r.arr)<=720&&mins(r.arr)>mins(r.dep))));
   const t0=today(),lead=(t0.getDay()+6)%7;
   let c='<div class="cal">'+['L','M','M','J','V','S','D'].map(x=>`<div class="dow">${x}</div>`).join('')+'<div class="day blank"></div>'.repeat(lead);
   for(let i=0;i<=HORIZON;i++){
@@ -402,9 +496,10 @@ const VIEWS={
   }
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
-  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`+(day.length?rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`:'');
+  let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
+  if(day.length)h+=`<div class="card" style="padding-bottom:10px"><div class="st">Répartition dans la journée</div>${timeline(day,S.from,S.to)}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
-  if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains directs sont complets en MAX ce jour-là.':'Aucun train direct trouvé ce jour-là.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
+  if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains sont complets en MAX ce jour-là.':'Aucun train trouvé ce jour-là'+(F.main||F.eve||F.morn?' avec ces filtres':'')+'.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=BOOK;
   if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.hideFull?'Afficher':'Masquer'} les ${day.length-ok.length} trajets complets</button>`;
   return h+'<div style="height:12px"></div>'+LEGEND(false);
@@ -447,9 +542,13 @@ const VIEWS={
   if(!its.length)h+=`<div class="msg">Aucune combinaison de deux tronçons gratuits avec ces réglages. Essayez une autre date, une attente max. plus longue, ou activez les gares voisines.</div>`;
   h+=its.slice(0,60).map(x=>`<div class="card">
     <div class="sum"><span class="t">${hm(x.dep)} → ${hm(x.arr)}</span><span class="meta">${fdur(x.total)} ${x.same?'<span class="badge acc">Même train</span>':''}</span></div>
-    <div class="leg"><b>${x.a.dep}</b><span>${esc(stName(x.a.o,x.a.d))}</span><span class="st">n° ${esc(x.a.no)}</span><b>${x.a.arr}</b><span>${esc(stName(x.a.d,x.a.o))}</span><span></span></div>
-    <div class="wait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
-    <div class="leg"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))}</span><span class="st">n° ${esc(x.b.no)}</span><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span><span></span></div>
+    <div class="route">
+      <div class="rstop"><b>${x.a.dep}</b><span>${esc(stName(x.a.o,x.a.d))} <span class="st">· n° ${esc(x.a.no)}</span></span></div>
+      <div class="rstop"><b>${x.a.arr}</b><span>${esc(stName(x.a.d,x.a.o))}</span></div>
+      <div class="rwait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
+      <div class="rstop"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))} <span class="st">· n° ${esc(x.b.no)}</span></span></div>
+      <div class="rstop"><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span></div>
+    </div>
   </div>`).join('');
   h+=rtBtn(S.from,S.to,S.date);
   if(its.length)h+=BOOK+`<div class="foot">Chaque tronçon se réserve séparément. En cas de retard, la correspondance n’est pas garantie entre deux billets distincts.</div>`;
@@ -495,22 +594,24 @@ $('#pickX').onclick=()=>$('#picker').classList.remove('on');
 $('#pickList').addEventListener('click',e=>{
   const b=e.target.closest('.opt');if(!b)return;
   const p=b.dataset.g?groupPlace(b.dataset.g):stationPlace(b.dataset.s);
-  if(pickTarget==='favA')S.fav.a=p;else if(pickTarget==='favB')S.fav.b=p;else if(pickTarget==='alA')S.draft.a=p;else if(pickTarget==='alB')S.draft.b=p;else S[pickTarget]=p;
+  if(pickTarget==='favA')FAV().a=p;else if(pickTarget==='favB')FAV().b=p;else if(pickTarget==='alA')S.draft.a=p;else if(pickTarget==='alB')S.draft.b=p;else S[pickTarget]=p;
   $('#picker').classList.remove('on');
   if(pickTarget.startsWith('fav'))drawFav();else if(pickTarget.startsWith('al'))drawAlerts();else render();
 });
 
 /* ============ Trajet habituel ============ */
 function drawFav(){
-  const days=(k)=>`<div class="days">${[1,2,3,4,5,6,0].map(d=>`<button class="${S.fav[k].includes(d)?'on':''}" data-k="${k}" data-d="${d}">${DOW[d]}</button>`).join('')}</div>`;
-  $('#favBody').innerHTML=`<div class="card"><button class="pick" data-fp="favA"><small>Ville A</small><span>${esc(S.fav.a.label)}</span></button>
-   <div style="height:8px"></div><button class="pick" data-fp="favB"><small>Ville B</small><span>${esc(S.fav.b.label)}</span></button></div>
-   <div class="card"><div class="st">Jours d’aller (A → B)</div>${days('out')}<div class="st" style="margin-top:14px">Jours de retour (B → A)</div>${days('ret')}</div>`;
+  const days=(k)=>`<div class="days">${[1,2,3,4,5,6,0].map(d=>`<button class="${FAV()[k].includes(d)?'on':''}" data-k="${k}" data-d="${d}">${DOW[d]}</button>`).join('')}</div>`;
+  $('#favBody').innerHTML=`<div class="card"><button class="pick" data-fp="favA"><small>Ville A</small><span>${esc(FAV().a.label)}</span></button>
+   <div style="height:8px"></div><button class="pick" data-fp="favB"><small>Ville B</small><span>${esc(FAV().b.label)}</span></button></div>
+   <div class="card"><div class="st">Jours d’aller (A → B)</div>${days('out')}<div class="st" style="margin-top:14px">Jours de retour (B → A)</div>${days('ret')}</div>
+   ${S.favs.length>1?'<button class="btn ghost" data-fdel="1" style="color:var(--acc)">Supprimer ce trajet habituel</button>':''}`;
 }
 $('#favBody').addEventListener('click',e=>{
   const p=e.target.closest('[data-fp]');if(p)return openPicker(p.dataset.fp);
+  if(e.target.closest('[data-fdel]')){S.favs.splice(S.favI,1);S.favI=0;$('#favSheet').classList.remove('on');return render()}
   const b=e.target.closest('[data-k]');if(!b)return;
-  const a=S.fav[b.dataset.k],d=+b.dataset.d,i=a.indexOf(d);i<0?a.push(d):a.splice(i,1);a.sort((x,y)=>((x+6)%7)-((y+6)%7));drawFav();
+  const a=FAV()[b.dataset.k],d=+b.dataset.d,i=a.indexOf(d);i<0?a.push(d):a.splice(i,1);a.sort((x,y)=>((x+6)%7)-((y+6)%7));drawFav();
 });
 $('#favOk').onclick=()=>{$('#favSheet').classList.remove('on');render()};
 
@@ -520,7 +621,7 @@ const allSt=(p,alts)=>alts?[...p.stations,...altStations(p)]:p.stations.slice();
 function alertConfig(){return{topic:S.topic,app:location.origin+location.pathname,alerts:S.alerts.map(a=>({name:a.a.label+' → '+a.b.label,o:allSt(a.a,a.alts),d:allSt(a.b,a.alts),days:a.days,t0:a.t0,t1:a.t1}))}}
 function drawAlerts(){
   if(!S.topic){S.topic='maxfinder-'+Array.from({length:12},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(Math.random()*31)]).join('')}
-  if(!S.alertsInit){S.alertsInit=true;if(!S.alerts.length){const f=S.fav;
+  if(!S.alertsInit){S.alertsInit=true;if(!S.alerts.length){const f=FAV();
     if(f.out.length)S.alerts.push({a:f.a,b:f.b,days:f.out.slice(),t0:0,t1:24,alts:true});
     if(f.ret.length)S.alerts.push({a:f.b,b:f.a,days:f.ret.slice(),t0:0,t1:24,alts:true})}}
   if(!S.draft||!validPlace(S.draft.a)||!validPlace(S.draft.b))S.draft={a:S.from,b:S.to,days:[5],t0:0,t1:24,alts:true};
@@ -560,28 +661,32 @@ $('#alBody').addEventListener('change',e=>{if(e.target.id==='alT0')S.draft.t0=+e
 
 /* ============ Événements ============ */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest]');
+  const t=e.target.closest('[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest],[data-favi],[data-filt]');
   if(!t||t.closest('.sheet'))return;
   const d=t.dataset;
   if(d.tab){S.tab=d.tab;window.scrollTo(0,0);return render()}
   if(d.pick)return openPicker(d.pick);
+  if(d.favi){S.favI=+d.favi;return render()}
+  if(d.filt){S.filt[d.filt]=!S.filt[d.filt];return render()}
+  if(d.act==='favadd'){S.favs.push({a:S.from,b:S.to,out:[5],ret:[0]});S.favI=S.favs.length-1;drawFav();return $('#favSheet').classList.add('on')}
   if(d.date){S.date=d.date;return render()}
-  if(d.go){const g=JSON.parse(d.go);S.date=g.ds;S.from=g.rev?S.fav.b:S.fav.a;S.to=g.rev?S.fav.a:S.fav.b;S.tab='trajet';window.scrollTo(0,0);return render()}
+  if(d.go){const g=JSON.parse(d.go);S.date=g.ds;S.from=g.rev?FAV().b:FAV().a;S.to=g.rev?FAV().a:FAV().b;S.tab='trajet';window.scrollTo(0,0);return render()}
   if(d.dest){S.to=groupPlace(d.dest)||S.to;S.tab='trajet';window.scrollTo(0,0);return render()}
   if(d.act==='swap'){[S.from,S.to]=[S.to,S.from];return render()}
   if(d.act==='alts'){S.alts=!S.alts;return render()}
   if(d.act==='full'){S.hideFull=!S.hideFull;return render()}
   if(d.act==='alerts'){drawAlerts();return $('#alertSheet').classList.add('on')}
   if(d.act==='fav'){drawFav();return $('#favSheet').classList.add('on')}
-  if(d.act==='demo'){S.demo=true;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;return render()}
+  if(d.act==='demo'){location.hash='#demo';return location.reload()}
 });
 document.addEventListener('change',e=>{
   const m={sDate:['date',String],sMin:['minConn',Number],sMax:['maxWait',Number],sSort:['sort',String],sNot:['notBefore',Number]}[e.target.id];
   if(!m||!e.target.value)return; S[m[0]]=m[1](e.target.value); render();
 });
 $('#refresh').onclick=()=>{cache.clear();render()};
-$('#demoBtn').onclick=()=>{S.demo=false;STATIONS=[];cache.clear();S.from=S.to=S.fav.a=S.fav.b=null;history.replaceState(null,'',location.pathname);render()};
+$('#demoBtn').onclick=()=>{history.replaceState(null,'',location.pathname);location.reload()};
 render();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
