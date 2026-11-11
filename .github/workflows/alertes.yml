@@ -1,0 +1,29 @@
+name: Alertes MaxFinder
+on:
+  schedule:
+    # Heures UTC : après la mise à jour quotidienne SNCF (~06h30 à Paris), plus deux rattrapages
+    - cron: '10 5,6,8,12 * * *'
+  push:
+    branches: [main]
+    paths: ['alerts/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: alertes
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check.mjs
+      - name: Enregistrer l'état
+        run: |
+          git config user.name "maxfinder-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A alerts state
+          git diff --cached --quiet || (git commit -m "Alertes : mise à jour de l'état" && git push)
