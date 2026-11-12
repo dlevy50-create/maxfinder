@@ -1,0 +1,20 @@
+{
+ "checked_at": "2026-11-12T12:22:21.288Z",
+ "data_processed": "2026-11-11T05:23:09+00:00",
+ "metadata_processed": "2026-11-12T05:30:13.826000+00:00",
+ "paris_sat_rows": 501,
+ "paris_sat_dest": 128,
+ "mtp": [
+  "MONTPELLIER SAINT ROCH 10:42",
+  "MONTPELLIER SAINT ROCH 16:56",
+  "MONTPELLIER SAINT ROCH 17:42",
+  "MONTPELLIER SUD DE FRANCE 07:42",
+  "MONTPELLIER SUD DE FRANCE 10:56",
+  "MONTPELLIER SUD DE FRANCE 16:56",
+  "MONTPELLIER SUD DE FRANCE 18:56"
+ ],
+ "lyon": [
+  "6619 15:00",
+  "6619 15:00"
+ ]
+}
