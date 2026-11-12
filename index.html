@@ -220,6 +220,7 @@ S.demo=location.hash==='#demo';
 if(!Array.isArray(S.favs)||!S.favs.length)S.favs=[S.fav&&S.fav.out?S.fav:{a:null,b:null,out:[5,6],ret:[0]}];
 delete S.fav; if(!(S.favI>=0&&S.favI<S.favs.length))S.favI=0;
 if(!S.filt)S.filt={main:false,eve:false,morn:false};
+if(S.connV!==2){S.connV=2;S.minConn=10}
 const FAV=()=>S.favs[S.favI];
 if(S.date<iso(today()))S.date=iso(today());
 const save=()=>{if(S.demo)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
@@ -255,7 +256,7 @@ async function trains({origins,dests,from,to,onlyMax}){
   const url=BASE+'/exports/json?limit=-1&select='+encodeURIComponent('date,train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card')+'&where='+encodeURIComponent(p.join(' and '));
   const pkey=(origins||[]).join(',')+'>'+(dests||[]).join(',')+'|'+(onlyMax?1:0)+'|'+(from===to?from:'30j');
   const rows=(await getJSON(url,pkey)).map(norm), seen=new Set();
-  return rows.filter(r=>{const k=[r.date,r.no,r.o,r.d,r.dep].join('|');if(seen.has(k))return false;seen.add(k);return true});
+  return rows.filter(r=>{const k=[r.date,r.no,r.o,r.d,r.dep,r.arr].join('|');if(seen.has(k))return false;seen.add(k);return true});
 }
 async function loadStations(){
   if(S.demo){STATIONS=DEMO_ST.slice();}
@@ -385,6 +386,8 @@ const icsLink=r=>{const z=s=>s.replace(/[-:]/g,''),d2=mins(r.arr)<mins(r.dep)?is
   return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MaxFinder//FR','BEGIN:VEVENT','UID:'+r.date+'-'+r.no+'-'+z(r.dep)+'@maxfinder','DTSTAMP:'+z(r.date)+'T000000Z',
    'DTSTART;TZID=Europe/Paris:'+z(r.date)+'T'+z(r.dep)+'00','DTEND;TZID=Europe/Paris:'+z(d2)+'T'+z(r.arr)+'00','SUMMARY:Train '+stName(r.o,r.d)+' → '+stName(r.d,r.o)+' (n° '+r.no+')',
    'DESCRIPTION:Place MAX repérée dans MaxFinder. À réserver sur SNCF Connect.','END:VEVENT','END:VCALENDAR'].join('\r\n'))};
+/* pour l'affichage : une seule ligne par train et par trajet (on garde l'arrivée la plus tôt) */
+const oneArr=rows=>{const m=new Map();for(const r of rows){const k=[r.date,r.no,r.o,r.d,r.dep].join('|'),x=m.get(k);if(!x||mins(r.arr)<mins(x.arr))m.set(k,r)}return[...m.values()]};
 const countMax=rows=>new Set(rows.filter(r=>r.max).map(r=>r.no+'|'+r.dep)).size;
 const byDep=(a,b)=>mins(a.dep)-mins(b.dep);
 const FOOT=`<div class="foot">Données : jeu « tgvmax » de l’open data SNCF (ODbL), mis à jour par la SNCF — ce n’est pas du temps réel, vérifiez sur SNCF Connect avant de compter sur une place. Appli indépendante, non affiliée à SNCF.</div>`;
@@ -446,7 +449,7 @@ const VIEWS={
     <button class="hbtn" style="background:var(--offBg);color:var(--ink)" data-act="fav">Modifier</button></div></div>`;
   paint(head+loading('Recherche des places MAX sur 30 jours…'));
   const R=range(), A=stOf(f.a), B=stOf(f.b);
-  const [out,ret]=await Promise.all([trains({origins:A,dests:B,...R}),trains({origins:B,dests:A,...R})]);
+  const [out,ret]=(await Promise.all([trains({origins:A,dests:B,...R}),trains({origins:B,dests:A,...R})])).map(oneArr);
   markNew(sigOf(A,B),out); markNew(sigOf(B,A),ret);
   const weeks=new Map(), uniq=rows=>{const seen=new Set();return rows.filter(r=>{const k=r.no+r.dep;if(seen.has(k))return false;seen.add(k);return true})};
   for(let i=0;i<=HORIZON;i++){
@@ -490,7 +493,7 @@ const VIEWS={
   const head=odCard()+`<div class="chips">${chip('main','Gares principales seulement')}${chip('eve','Départ après 17 h')}${chip('morn','Arrivée avant midi')}</div>`;
   paint(head+loading());
   const A=stOf(S.from),B=stOf(S.to);
-  let rows=markNew(sigOf(A,B),await trains({origins:A,dests:B,...range()}));
+  let rows=markNew(sigOf(A,B),oneArr(await trains({origins:A,dests:B,...range()})));
   rows=rows.filter(r=>(!F.main||(S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)))&&(!F.eve||mins(r.dep)>=1020)&&(!F.morn||(mins(r.arr)<=720&&mins(r.arr)>mins(r.dep))));
   const t0=today(),lead=(t0.getDay()+6)%7;
   let c='<div class="cal">'+['L','M','M','J','V','S','D'].map(x=>`<div class="dow">${x}</div>`).join('')+'<div class="day blank"></div>'.repeat(lead);
@@ -514,7 +517,7 @@ const VIEWS={
   const head=odCard()+`<div class="card"><div class="row2">
     <label>Date<input type="date" id="sDate" value="${S.date}" min="${iso(today())}" max="${iso(addDays(today(),HORIZON))}"></label>
     <label>Départ après<select id="sNot">${[0,6,8,10,12,14,16,18,20].map(x=>opt(x,x?x+' h':'Peu importe',S.notBefore)).join('')}</select></label></div>
-    <div class="row2"><label>Correspondance min.<select id="sMin">${[15,20,30,45,60,90].map(x=>opt(x,x+' min',S.minConn)).join('')}</select></label>
+    <div class="row2"><label>Correspondance min.<select id="sMin">${[10,15,20,30,45,60,90].map(x=>opt(x,x+' min',S.minConn)).join('')}</select></label>
     <label>Attente max.<select id="sMax">${[90,120,180,240,360].map(x=>opt(x,fdur(x),S.maxWait)).join('')}</select></label>
     <label>Tri<select id="sSort">${opt('arr','Arrivée',S.sort)+opt('dur','Durée',S.sort)+opt('dep','Départ',S.sort)}</select></label></div></div>`;
   paint(head+loading('Calcul des combinaisons…'));
@@ -529,16 +532,19 @@ const VIEWS={
     const c=hub.get(cityKey(a.d)); if(!c)continue;
     const aArr=mins(a.dep)+dur(a);
     for(const b of c){
-      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, multi=!same&&(!sameSt||/intramuros/i.test(a.d));
-      const wait=mins(b.dep)-aArr, need=same?0:multi?Math.max(S.minConn,60):S.minConn;
+      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, intra=/intramuros/i.test(a.d), far=!sameSt||/^PARIS\b/i.test(a.d), multi=!same&&(far||intra);
+      const wait=mins(b.dep)-aArr, need=same?0:far?Math.max(S.minConn,60):S.minConn;
       if(wait<need||wait>S.maxWait)continue;
-      const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
+      const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,far,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
       const k=a.no+'|'+a.dep+'|'+a.o+'|'+cityKey(a.d)+'|'+b.d, p=best.get(k);
       if(!p||it.arr<p.arr)best.set(k,it);
     }
   }
   /* on enlève les options dominées : même départ ou plus tard ET arrivée plus tardive via le même hub */
   let its=[...best.values()];
+  { /* pour un même premier train, on écarte les variantes qui arrivent plus d'1 h après la meilleure */
+    const bestArr=new Map();for(const x of its){const k=x.a.no+'|'+x.a.dep+'|'+x.a.o;if(!bestArr.has(k)||x.arr<bestArr.get(k))bestArr.set(k,x.arr)}
+    its=its.filter(x=>x.arr<=bestArr.get(x.a.no+'|'+x.a.dep+'|'+x.a.o)+60)}
   const key={arr:x=>x.arr*10000+x.total,dur:x=>x.total*10000+x.arr,dep:x=>x.dep*10000+x.total}[S.sort];
   its.sort((x,y)=>(y.same-x.same)||key(x)-key(y));
   let h=head+`<h2>${fdate(S.date)} · ${its.length} combinaison${its.length>1?'s':''}</h2>`;
@@ -549,7 +555,7 @@ const VIEWS={
     <div class="route">
       <div class="rstop"><b>${x.a.dep}</b><span>${esc(stName(x.a.o,x.a.d))} <span class="st">· n° ${esc(x.a.no)}</span></span></div>
       <div class="rstop"><b>${x.a.arr}</b><span>${esc(stName(x.a.d,x.a.o))}</span></div>
-      <div class="rwait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.multi?' · ⚠️ changement de gare possible':''}`}</div>
+      <div class="rwait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.far?' · ⚠️ changement de gare':x.multi?' · ⚠️ vérifiez que les deux trains passent par la même gare':''}`}</div>
       <div class="rstop"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))} <span class="st">· n° ${esc(x.b.no)}</span></span></div>
       <div class="rstop"><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span></div>
     </div>
@@ -563,7 +569,7 @@ const VIEWS={
   const head=`<div class="card"><button class="pick" data-pick="from"><small>Depuis</small><span>${esc(S.from.label)}</span></button>
     <div class="row2"><label>Date<input type="date" id="sDate" value="${S.date}" min="${iso(today())}" max="${iso(addDays(today(),HORIZON))}"></label></div></div>`;
   paint(head+loading());
-  const rows=await trains({origins:S.from.stations,from:S.date,to:S.date,onlyMax:true});
+  const rows=oneArr(await trains({origins:S.from.stations,from:S.date,to:S.date,onlyMax:true}));
   const g=new Map();
   for(const r of rows){const k=cityKey(r.d);if(k===S.from.key)continue;(g.get(k)||g.set(k,[]).get(k)).push(r)}
   const list=[...g.entries()].map(([k,rs])=>({k,p:groupPlace(k)||stationPlace(rs[0].d),n:countMax(rs),first:rs.sort(byDep)[0].dep,last:rs[rs.length-1].dep,min:Math.min(...rs.map(dur))}))
