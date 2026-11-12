@@ -416,7 +416,7 @@ const BOOK=`<a class="btn" href="${RT}" target="_blank" rel="noopener">Réserver
 /* ============ Vues ============ */
 let token=0,FRESH=0,freshAsked=false,SUB=()=>{};
 async function render(){
-  const my=++token, v=$('#view');
+  const my=++token, v=$('#view'); lastRender=Date.now();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
   $('#demoBtn').hidden=!S.demo; STALE=0;
   const sub=()=>{const el=$('#subtitle');
@@ -687,7 +687,12 @@ document.addEventListener('change',e=>{
   const m={sDate:['date',String],sMin:['minConn',Number],sMax:['maxWait',Number],sSort:['sort',String],sNot:['notBefore',Number]}[e.target.id];
   if(!m||!e.target.value)return; S[m[0]]=m[1](e.target.value); render();
 });
-$('#refresh').onclick=()=>{cache.clear();render()};
+const hardRefresh=()=>{cache.clear();FRESH=0;freshAsked=false;if(S.date<iso(today()))S.date=iso(today());render()};
+$('#refresh').onclick=hardRefresh;
+/* l'iPhone garde l'appli en mémoire : au retour au premier plan, on recharge si l'affichage a plus de 10 min */
+let lastRender=Date.now();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-lastRender>10*60e3&&!document.querySelector('.sheet.on'))hardRefresh()});
+window.addEventListener('pageshow',e=>{if(e.persisted)hardRefresh()});
 $('#demoBtn').onclick=()=>{history.replaceState(null,'',location.pathname);location.reload()};
 render();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
