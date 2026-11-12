@@ -504,7 +504,7 @@ const VIEWS={
   if(day.length)h+=`<div class="card"><div class="st">Horaires avec place MAX</div>${ok.length?`<div class="pills">${[...new Map(ok.map(r=>[r.no+r.dep,r])).values()].map(r=>`<span class="pill ${S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}</div>`:'<div class="st" style="margin-top:6px">Aucun pour l’instant.</div>'}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains sont complets en MAX ce jour-là.':'Aucun train trouvé ce jour-là'+(F.main||F.eve||F.morn?' avec ces filtres':'')+'.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
-  else h+=BOOK;
+  else h+=`<button class="btn ghost" data-tab="split">Voir aussi les trajets avec correspondance →</button>`+BOOK;
   if(day.length>ok.length)h+=`<button class="btn ghost" data-act="full">${S.hideFull?'Afficher':'Masquer'} les ${day.length-ok.length} trajets complets</button>`;
   return h+'<div style="height:12px"></div>'+LEGEND(false);
  },
