@@ -76,6 +76,8 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)
 .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 .pill{font-size:13px;font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:8px;background:var(--okBg);color:var(--ok);font-weight:600}
 .pill.alt{background:none;border:1px dashed var(--acc);color:var(--acc)}
+.pill[data-jump]{cursor:pointer}
+.train.hl{outline:3px solid var(--acc);outline-offset:2px;transition:outline-color .3s}
 .pill.nw{box-shadow:0 0 0 3px rgba(228,87,46,.4)}
 .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 select,input[type=date],input[type=search]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
@@ -355,7 +357,7 @@ function trainCard(r,from,to,all){
     if(s&&mins(s.arr)<mins(r.arr))via=`<div class="via">↳ Même train : il s’arrête à ${esc(pretty(s.d))} à ${s.arr}${s.max?'':' (complet en MAX jusque-là, mais libre avec ce billet plus long)'}</div>`}
   if(all&&ao&&!ad){const s=all.find(x=>x.date===r.date&&x.no===r.no&&x.d===r.d&&from.stations.includes(x.o));
     if(s&&mins(s.dep)>mins(r.dep))via=`<div class="via">↳ Même train : il passe par ${esc(pretty(s.o))} à ${s.dep}</div>`}
-  return `<div class="card train ${r.max?'':'full'}">
+  return `<div class="card train ${r.max?'':'full'}" data-key="${esc([r.no,r.dep,r.o,r.d].join('|'))}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
     <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}${r.isNew?'<span class="new">NOUVEAU</span>':''}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
     <div class="meta"><a class="badge ${r.max?'':'off'}" href="${deepTrain(r)}" target="_blank" rel="noopener">${r.max?'MAX dispo · réserver ↗':'Complet · revérifier ↗'}</a><br>${fdur(dur(r))} · n° ${esc(r.no)}${r.max?`<br><a class="ical" href="${icsLink(r)}" download="train-${r.date}.ics">📅 Ajouter à l’agenda</a>`:''}</div>${via}
@@ -458,6 +460,9 @@ async function fillReco(my,date){
       :`<div class="st" style="margin:0 4px 12px">Pas de découpage simple ce jour-là. <button data-tab="split" style="text-decoration:underline">Voir toutes les combinaisons</button></div>`;
   }catch(e){const x=document.getElementById('reco');if(x&&my===token)x.innerHTML=''}
 }
+let JUMP=null;
+function doJump(){const k=JUMP;JUMP=null;if(!k)return;const el=[...document.querySelectorAll('.train[data-key]')].find(x=>x.dataset.key===k);if(!el)return;
+  el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('hl');setTimeout(()=>el.classList.remove('hl'),2500)}
 let token=0,FRESH=0,freshAsked=false,SUB=()=>{};
 async function render(){
   const my=++token, v=$('#view'); lastRender=Date.now();
@@ -477,7 +482,7 @@ async function render(){
     if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
     ensureDefaults();
     const html=await VIEWS[S.tab](h=>{if(my===token)v.innerHTML=h});
-    if(my===token){v.innerHTML=html+FOOT;SUB();if(S.tab==='trajet')fillReco(my,S.date)}
+    if(my===token){v.innerHTML=html+FOOT;SUB();if(S.tab==='trajet'){fillReco(my,S.date);if(JUMP)setTimeout(doJump,60)}else JUMP=null}
   }catch(e){console.error(e);if(my===token)v.innerHTML=errorBox(e)}
 }
 const range=()=>({from:iso(today()),to:iso(addDays(today(),HORIZON))});
@@ -520,7 +525,7 @@ const VIEWS={
       h+=`<button class="wkrow" data-go='${esc(JSON.stringify({ds:it.ds,rev:it.dir==='Retour'}))}'>
         <div class="dir">${it.dir} · ${esc(it.from.label)} → ${esc(it.to.label)}</div>
         <div class="top"><span>${fdate(it.ds)}${nw?`<span class="new">${nw} NOUVEAU${nw>1?'X':''}</span>`:''}</span><span class="badge ${n>2?'':n?'warn':'off'}">${n?n+' train'+(n>1?'s':'')+' MAX':it.any?'Complet':'Pas de données'}</span></div>
-        ${n?`<div class="pills">${it.u.slice(0,10).map(r=>`<span class="pill ${it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}${n>10?`<span class="st">+${n-10}</span>`:''}</div>`
+        ${n?`<div class="pills">${it.u.slice(0,10).map(r=>`<span class="pill ${it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}" data-jump="${esc([r.no,r.dep,r.o,r.d].join('|'))}">${r.dep}</span>`).join('')}${n>10?`<span class="st">+${n-10}</span>`:''}</div>`
            :it.any?`<div class="st" style="margin-top:5px">Touchez pour revérifier ou tenter un découpage →</div>`:''}
       </button>`;
     }
@@ -545,7 +550,7 @@ const VIEWS={
   c+=`</div><div class="legend"><span><i style="background:var(--okBg)"></i>3 trains MAX ou +</span><span><i style="background:var(--warnBg)"></i>1 à 2</span><span><i style="background:var(--offBg)"></i>complet / pas de train</span></div>`;
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
   let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
-  if(day.length)h+=`<div class="card"><div class="st">Horaires avec place MAX</div>${ok.length?`<div class="pills">${[...new Map(ok.map(r=>[r.no+r.dep,r])).values()].map(r=>`<span class="pill ${S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}</div>`:'<div class="st" style="margin-top:6px">Aucun pour l’instant.</div>'}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
+  if(day.length)h+=`<div class="card"><div class="st">Horaires avec place MAX</div>${ok.length?`<div class="pills">${[...new Map(ok.map(r=>[r.no+r.dep,r])).values()].map(r=>`<button class="pill ${S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}" data-jump="${esc([r.no,r.dep,r.o,r.d].join('|'))}">${r.dep}</button>`).join('')}</div>`:'<div class="st" style="margin-top:6px">Aucun pour l’instant.</div>'}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
   h+=`<div id="reco" style="margin-top:12px"><div class="st" style="margin:0 4px 12px">Recherche de découpages simples…</div></div>`;
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains sont complets en MAX ce jour-là.':'Aucun train trouvé ce jour-là'+(F.main||F.eve||F.morn?' avec ces filtres':'')+'.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
@@ -690,9 +695,12 @@ $('#alBody').addEventListener('change',e=>{if(e.target.id==='alT0')S.draft.t0=+e
 
 /* ============ Événements ============ */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest],[data-favi],[data-filt]');
+  const t=e.target.closest('[data-jump],[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest],[data-favi],[data-filt]');
   if(!t||t.closest('.sheet'))return;
   const d=t.dataset;
+  if(d.jump){JUMP=d.jump;const g=t.closest('[data-go]');
+    if(!g)return doJump();
+    const o=JSON.parse(g.dataset.go);S.date=o.ds;S.from=o.rev?FAV().b:FAV().a;S.to=o.rev?FAV().a:FAV().b;S.hideFull=false;S.filt={main:false,eve:false,morn:false};S.tab='trajet';return render()}
   if(d.tab){S.tab=d.tab;window.scrollTo(0,0);return render()}
   if(d.pick)return openPicker(d.pick);
   if(d.favi){S.favI=+d.favi;return render()}
