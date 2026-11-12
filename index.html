@@ -77,6 +77,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)
 .pill{font-size:13px;font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:8px;background:var(--okBg);color:var(--ok);font-weight:600}
 .pill.alt{background:none;border:1px dashed var(--acc);color:var(--acc)}
 .pill[data-jump]{cursor:pointer}
+.train[data-href]{cursor:pointer}
 .train.hl{outline:3px solid var(--acc);outline-offset:2px;transition:outline-color .3s}
 .pill.nw{box-shadow:0 0 0 3px rgba(228,87,46,.4)}
 .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -201,7 +202,8 @@ const TWO=new Set(['LA','LE','LES','ST','STE','SAINT','SAINTE','AIX','BOURG','MO
 const cityKey=n=>{const w=String(n).toUpperCase().replace(/\(.*?\)/g,' ').trim().split(/\s+/);return TWO.has(w[0])&&w[1]?w[0]+' '+w[1]:w[0]};
 /* Paris regroupe toutes les gares : on précise Gare de Lyon quand l'autre bout est dans le Sud-Est */
 const SUD_EST=new Set(['MONTPELLIER','NIMES','SETE','AGDE','BEZIERS','NARBONNE','PERPIGNAN','LUNEL','LYON','VALENCE','MONTELIMAR','ORANGE','AVIGNON','MARSEILLE','AIX EN','TOULON','NICE','CANNES','ANTIBES','GRENOBLE','CHAMBERY','ANNECY','DIJON','MACON','BESANCON']);
-const stName=(s,other)=>/^PARIS\b.*intramuros/i.test(s)&&SUD_EST.has(cityKey(other))?'Paris Gare de Lyon':pretty(s);
+const CODE_NAMES={FRPLY:'Paris Gare de Lyon',FRPMO:'Paris Montparnasse',FRPNO:'Paris Gare du Nord',FRPST:'Paris Gare de l’Est',FRPAZ:'Paris Austerlitz',FRPBE:'Paris Bercy',FRPSL:'Paris Saint-Lazare',FRLPD:'Lyon Part-Dieu',FRLPE:'Lyon Perrache',FRLLE:'Lille Europe',FRADJ:'Lille Flandres'};
+const stName=(s,other,code)=>/intramuros/i.test(s)&&CODE_NAMES[code]?CODE_NAMES[code]:/^PARIS\b.*intramuros/i.test(s)&&SUD_EST.has(cityKey(other))?'Paris Gare de Lyon':pretty(s);
 /* gares voisines : clé de ville -> clés des villes proches */
 const NEIGH={
  PARIS:['MASSY','MARNE','AEROPORT','VERSAILLES'],
@@ -247,7 +249,7 @@ async function getJSON(url,pkey){
   }catch(e){const o=pkey&&pget(pkey);if(o){STALE=STALE?Math.min(STALE,o.t):o.t;return o.v}throw e}
 }
 const norm=x=>({date:String(x.date).slice(0,10),no:String(x.train_no),o:x.origine,d:x.destination,
-  dep:String(x.heure_depart).slice(0,5),arr:String(x.heure_arrivee).slice(0,5),max:String(x.od_happy_card).toUpperCase()==='OUI'});
+  oc:x.origine_iata||'',dc:x.destination_iata||'',dep:String(x.heure_depart).slice(0,5),arr:String(x.heure_arrivee).slice(0,5),max:String(x.od_happy_card).toUpperCase()==='OUI'});
 async function trains({origins,dests,from,to,onlyMax}){
   if(S.demo)return demoTrains({origins,dests,from,to,onlyMax});
   const p=[];
@@ -255,7 +257,7 @@ async function trains({origins,dests,from,to,onlyMax}){
   if(dests)p.push('('+dests.map(s=>'destination='+qs(s)).join(' or ')+')');
   p.push(from===to?`date=date'${from}'`:`date>=date'${from}' and date<=date'${to}'`);
   if(onlyMax)p.push('od_happy_card="OUI"');
-  const url=BASE+'/exports/json?limit=-1&select='+encodeURIComponent('date,train_no,origine,destination,heure_depart,heure_arrivee,od_happy_card')+'&where='+encodeURIComponent(p.join(' and '));
+  const url=BASE+'/exports/json?limit=-1&select='+encodeURIComponent('date,train_no,origine,destination,origine_iata,destination_iata,heure_depart,heure_arrivee,od_happy_card')+'&where='+encodeURIComponent(p.join(' and '));
   const pkey=(origins||[]).join(',')+'>'+(dests||[]).join(',')+'|'+(onlyMax?1:0)+'|'+(from===to?from:'30j');
   const rows=(await getJSON(url,pkey)).map(norm), seen=new Set();
   return rows.filter(r=>{const k=[r.date,r.no,r.o,r.d,r.dep,r.arr].join('|');if(seen.has(k))return false;seen.add(k);return true});
@@ -357,9 +359,9 @@ function trainCard(r,from,to,all){
     if(s&&mins(s.arr)<mins(r.arr))via=`<div class="via">↳ Même train : il s’arrête à ${esc(pretty(s.d))} à ${s.arr}${s.max?'':' (complet en MAX jusque-là, mais libre avec ce billet plus long)'}</div>`}
   if(all&&ao&&!ad){const s=all.find(x=>x.date===r.date&&x.no===r.no&&x.d===r.d&&from.stations.includes(x.o));
     if(s&&mins(s.dep)>mins(r.dep))via=`<div class="via">↳ Même train : il passe par ${esc(pretty(s.o))} à ${s.dep}</div>`}
-  return `<div class="card train ${r.max?'':'full'}" data-key="${esc([r.no,r.dep,r.o,r.d].join('|'))}">
+  return `<div class="card train ${r.max?'':'full'}" data-href="${deepTrain(r)}" data-key="${esc([r.no,r.dep,r.o,r.d].join('|'))}">
     <div><div class="t">${r.dep}</div><div class="t arr">${r.arr}</div></div>
-    <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d))}${r.isNew?'<span class="new">NOUVEAU</span>':''}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o))}</div></div>
+    <div><div class="st ${ao?'alt':''}">${esc(stName(r.o,r.d,r.oc))}${r.isNew?'<span class="new">NOUVEAU</span>':''}</div><div class="st ${ad?'alt':''}">${esc(stName(r.d,r.o,r.dc))}</div></div>
     <div class="meta"><a class="badge ${r.max?'':'off'}" href="${deepTrain(r)}" target="_blank" rel="noopener">${r.max?'MAX dispo · réserver ↗':'Complet · revérifier ↗'}</a><br>${fdur(dur(r))} · n° ${esc(r.no)}${r.max?`<br><a class="ical" href="${icsLink(r)}" download="train-${r.date}.ics">📅 Ajouter à l’agenda</a>`:''}</div>${via}
   </div>`;
 }
@@ -386,7 +388,7 @@ function timeline(rows,from,to){
 }
 const icsLink=r=>{const z=s=>s.replace(/[-:]/g,''),d2=mins(r.arr)<mins(r.dep)?iso(addDays(parse(r.date),1)):r.date;
   return 'data:text/calendar;charset=utf-8,'+encodeURIComponent(['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MaxFinder//FR','BEGIN:VEVENT','UID:'+r.date+'-'+r.no+'-'+z(r.dep)+'@maxfinder','DTSTAMP:'+z(r.date)+'T000000Z',
-   'DTSTART;TZID=Europe/Paris:'+z(r.date)+'T'+z(r.dep)+'00','DTEND;TZID=Europe/Paris:'+z(d2)+'T'+z(r.arr)+'00','SUMMARY:Train '+stName(r.o,r.d)+' → '+stName(r.d,r.o)+' (n° '+r.no+')',
+   'DTSTART;TZID=Europe/Paris:'+z(r.date)+'T'+z(r.dep)+'00','DTEND;TZID=Europe/Paris:'+z(d2)+'T'+z(r.arr)+'00','SUMMARY:Train '+stName(r.o,r.d,r.oc)+' → '+stName(r.d,r.o,r.dc)+' (n° '+r.no+')',
    'DESCRIPTION:Place MAX repérée dans MaxFinder. À réserver sur SNCF Connect.','END:VEVENT','END:VCALENDAR'].join('\r\n'))};
 /* pour l'affichage : une seule ligne par train et par trajet (on garde l'arrivée la plus tôt) */
 const oneArr=rows=>{const m=new Map();for(const r of rows){const k=[r.date,r.no,r.o,r.d,r.dep].join('|'),x=m.get(k);if(!x||mins(r.arr)<mins(x.arr))m.set(k,r)}return[...m.values()]};
@@ -412,7 +414,7 @@ const deep=(from,to,date,dep)=>{const o=CODES[from.key],d=CODES[to.key];if(!o||!
 /* codes par gare (vérifiés auprès de la SNCF) pour préremplir train par train */
 const ST_CODES={'montpellier saint roch':'FRMPL','montpellier sud de france':'FRSUF','nimes pont du gard':'FRXZP','beziers':'FRBZR','perpignan':'FRPGF','marne la vallee chessy':'FRMLV','lunel':'FRIJB'};
 const stCode=(s,other)=>/^PARIS\b.*intramuros/i.test(s)?(SUD_EST.has(cityKey(other))?'FRPLY':null):ST_CODES[pretty(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||null;
-const deepTrain=r=>{const o=stCode(r.o,r.d),d=stCode(r.d,r.o);return o&&d?'https://www.sncf-connect.com/app/redirect?redirection_type=SEARCH&origin_transporter_code='+o+'&destination_transporter_code='+d+'&outward_date='+r.date+'-'+r.dep.slice(0,2)+'-00':RT};
+const deepTrain=r=>{const o=r.oc||stCode(r.o,r.d),d=r.dc||stCode(r.d,r.o);return o&&d?'https://www.sncf-connect.com/app/redirect?redirection_type=SEARCH&origin_transporter_code='+o+'&destination_transporter_code='+d+'&outward_date='+r.date+'-'+r.dep.slice(0,2)+'-00':RT};
 const rtBtn=(from,to,date)=>{const u=deep(from,to,date);return `<a class="btn rt" href="${u||RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a>
   <div class="st" style="text-align:center;margin:8px 0 0">${u?`Trajet et date préremplis, Paris toutes gares (essai). Si ça n’ouvre pas la bonne recherche : <a href="${RT}" target="_blank" rel="noopener">formulaire vide</a> · `:''}<a href="${SIMU}" target="_blank" rel="noopener">simulateur MAX ↗</a></div>`};
 const _unused=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡ Vérifier en temps réel sur SNCF Connect ↗</a><a class="st" style="display:block;text-align:center;margin:8px 0 0" href="${SIMU}" target="_blank" rel="noopener">ou sur le simulateur MAX de la SNCF ↗</a>`;
@@ -432,7 +434,7 @@ async function combos(from,to,date,o){
     const c=hub.get(cityKey(a.d)); if(!c)continue;
     const aArr=mins(a.dep)+dur(a);
     for(const b of c){
-      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, intra=/intramuros/i.test(a.d), far=!sameSt||/^PARIS\b/i.test(a.d), multi=!same&&(far||intra);
+      const known=!!(a.dc&&b.oc), sameSt=known?a.dc===b.oc:a.d===b.o, same=sameSt&&a.no===b.no, intra=!known&&/intramuros/i.test(a.d), far=!sameSt||(!known&&/^PARIS\b/i.test(a.d)), multi=!same&&(far||intra);
       const wait=mins(b.dep)-aArr, need=same?0:far?Math.max(o.minConn,60):o.minConn;
       if(wait<need||wait>o.maxWait)continue;
       const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,far,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
@@ -456,7 +458,7 @@ async function fillReco(my,date){
     for(const x of its.filter(x=>!x.far&&(!F.eve||x.dep>=1020)&&(!F.morn||x.arr<=720)&&(!F.main||(S.from.stations.includes(x.a.o)&&S.to.stations.includes(x.b.d)))).sort((x,y)=>score(x)-score(y))){
       const ka=x.a.no+x.a.dep, kb=x.b.no+x.b.dep+(x.same?x.a.d:''); if(seenA.has(ka)||(!x.same&&seenB.has(kb)))continue; seenA.add(ka); seenB.add(kb); pick.push(x); if(pick.length===3)break}
     document.getElementById('reco').innerHTML=pick.length?`<div class="card"><div class="st">Découpages recommandés · 2 billets MAX</div>${pick.map(x=>`<button class="al" style="width:100%;text-align:left" data-tab="split">
-        <span><b class="t" style="font-size:17px">${hm(x.dep)} → ${hm(x.arr)}</b> <span class="st">· ${fdur(x.total)}</span><br><span class="st">${x.same?`Même train, sans changement · 2 réservations (coupure à ${esc(stName(x.a.d,x.a.o))})`:`via ${esc(stName(x.a.d,x.a.o))} · ${x.wait} min de correspondance${x.wait<20?' · ⚠️ courte, non garantie':''}`}</span></span><span class="st">›</span></button>`).join('')}</div>`
+        <span><b class="t" style="font-size:17px">${hm(x.dep)} → ${hm(x.arr)}</b> <span class="st">· ${fdur(x.total)}</span><br><span class="st">${x.same?`Même train, sans changement · 2 réservations (coupure à ${esc(stName(x.a.d,x.a.o,x.a.dc))})`:`via ${esc(stName(x.a.d,x.a.o,x.a.dc))} · ${x.wait} min de correspondance${x.wait<20?' · ⚠️ courte, non garantie':''}`}</span></span><span class="st">›</span></button>`).join('')}</div>`
       :`<div class="st" style="margin:0 4px 12px">Pas de découpage simple ce jour-là. <button data-tab="split" style="text-decoration:underline">Voir toutes les combinaisons</button></div>`;
   }catch(e){const x=document.getElementById('reco');if(x&&my===token)x.innerHTML=''}
 }
@@ -513,7 +515,7 @@ const VIEWS={
     const leg=dir=>{const its=first.filter(x=>x.dir===dir); if(!its.length)return '';
       const it=its.find(x=>x.u.length)||its[0], main=it.u.find(r=>it.from.stations.includes(r.o)&&it.to.stations.includes(r.d)), r=main||it.u[0], d=parse(it.ds);
       const go=esc(JSON.stringify({ds:it.ds,rev:dir==='Retour'}));
-      return r?`<button class="hleg" data-go='${go}'><div class="d">${dir} · ${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div><div class="big">${r.dep}</div><div class="s">${esc(stName(r.o,r.d))} → ${esc(stName(r.d,r.o))}<br>arrivée ${r.arr} · ${it.u.length} train${it.u.length>1?'s':''} MAX</div></button>`
+      return r?`<button class="hleg" data-go='${go}'><div class="d">${dir} · ${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div><div class="big">${r.dep}</div><div class="s">${esc(stName(r.o,r.d,r.oc))} → ${esc(stName(r.d,r.o,r.dc))}<br>arrivée ${r.arr} · ${it.u.length} train${it.u.length>1?'s':''} MAX</div></button>`
         :`<button class="hleg none" data-go='${go}'><div class="d">${dir} · ${DOW[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}</div><div class="big">${it.any?'Complet':'Pas de train'}</div><div class="s">${it.any?'Touchez pour revérifier ou tenter un découpage':'Aucune donnée ce jour-là'}</div></button>`};
     h+=`<div class="card hero"><h3>Prochain week-end · ${esc(f.a.label)} ⇄ ${esc(f.b.label)}</h3><div class="legs">${leg('Aller')}${leg('Retour')}</div></div>`;
   }
@@ -577,11 +579,11 @@ const VIEWS={
   h+=its.slice(0,60).map(x=>`<div class="card">
     <div class="sum"><span class="t">${hm(x.dep)} → ${hm(x.arr)}</span><span class="meta">${fdur(x.total)} ${x.same?'<span class="badge acc">Même train</span>':''}</span></div>
     <div class="route">
-      <div class="rstop"><b>${x.a.dep}</b><span>${esc(stName(x.a.o,x.a.d))} <span class="st">· n° ${esc(x.a.no)}</span></span></div>
-      <div class="rstop"><b>${x.a.arr}</b><span>${esc(stName(x.a.d,x.a.o))}</span></div>
+      <div class="rstop"><b>${x.a.dep}</b><span>${esc(stName(x.a.o,x.a.d,x.a.oc))} <span class="st">· n° ${esc(x.a.no)}</span> <a class="ical" href="${deepTrain(x.a)}" target="_blank" rel="noopener">réserver ↗</a></span></div>
+      <div class="rstop"><b>${x.a.arr}</b><span>${esc(stName(x.a.d,x.a.o,x.a.dc))}</span></div>
       <div class="rwait">${x.same?'Vous restez dans le même train : 2 réservations MAX au lieu d’une.':`Correspondance ${fdur(x.wait)}${x.far?' · ⚠️ changement de gare':x.multi?' · ⚠️ vérifiez que les deux trains passent par la même gare':''}`}</div>
-      <div class="rstop"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d))} <span class="st">· n° ${esc(x.b.no)}</span></span></div>
-      <div class="rstop"><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o))}</span></div>
+      <div class="rstop"><b>${x.b.dep}</b><span>${esc(stName(x.b.o,x.b.d,x.b.oc))} <span class="st">· n° ${esc(x.b.no)}</span> <a class="ical" href="${deepTrain(x.b)}" target="_blank" rel="noopener">réserver ↗</a></span></div>
+      <div class="rstop"><b>${x.b.arr}</b><span>${esc(stName(x.b.d,x.b.o,x.b.dc))}</span></div>
     </div>
   </div>`).join('');
   h+=rtBtn(S.from,S.to,S.date);
@@ -695,6 +697,8 @@ $('#alBody').addEventListener('change',e=>{if(e.target.id==='alT0')S.draft.t0=+e
 
 /* ============ Événements ============ */
 document.addEventListener('click',e=>{
+  const card=e.target.closest('.train[data-href]');
+  if(card&&!e.target.closest('a,button')){const a=document.createElement('a');a.href=card.dataset.href;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();return}
   const t=e.target.closest('[data-jump],[data-tab],[data-pick],[data-act],[data-date],[data-go],[data-dest],[data-favi],[data-filt]');
   if(!t||t.closest('.sheet'))return;
   const d=t.dataset;
