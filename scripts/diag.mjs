@@ -1,12 +1,13 @@
-// Diagnostic ponctuel : liste des gares du jeu « tgvmax » + fraîcheur
+// Diagnostic ponctuel : les données « tgvmax » ont-elles changé depuis hier ?
 import fs from 'node:fs';
 const B = 'https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets/tgvmax';
 const out = { checked_at: new Date().toISOString() };
 try {
-  out.data_processed = (await (await fetch(B)).json()).metas?.default?.data_processed;
-  const a = await (await fetch(`${B}/exports/json?select=origine,origine_iata&group_by=origine,origine_iata&limit=-1`)).json();
-  const b = await (await fetch(`${B}/exports/json?select=destination,destination_iata&group_by=destination,destination_iata&limit=-1`)).json();
-  const m = {}; for (const r of a) m[r.origine] = r.origine_iata; for (const r of b) m[r.destination] ??= r.destination_iata;
-  out.stations = m;
+  const d = (await (await fetch(B)).json()).metas?.default || {};
+  out.data_processed = d.data_processed; out.metadata_processed = d.metadata_processed;
+  const rows = await (await fetch(`${B}/exports/json?limit=-1&select=${encodeURIComponent('train_no,destination,heure_depart')}&where=${encodeURIComponent("origine=\"PARIS (intramuros)\" and date=date'2026-11-14' and od_happy_card=\"OUI\"")}`)).json();
+  out.paris_sat_rows = rows.length; out.paris_sat_dest = new Set(rows.map(r => r.destination)).size;
+  out.mtp = rows.filter(r => /MONTPELLIER/.test(r.destination)).map(r => r.destination + ' ' + r.heure_depart).sort();
+  out.lyon = rows.filter(r => /LYON/.test(r.destination) && ['11:52', '15:00'].includes(r.heure_depart)).map(r => r.train_no + ' ' + r.heure_depart);
 } catch (e) { out.error = String(e); }
-fs.writeFileSync('diag/out.json', JSON.stringify(out, null, 0));
+fs.writeFileSync('diag/out.json', JSON.stringify(out, null, 1));
