@@ -465,6 +465,7 @@ async function fillReco(my,date){
 let JUMP=null;
 function doJump(){const k=JUMP;JUMP=null;if(!k)return;const el=[...document.querySelectorAll('.train[data-key]')].find(x=>x.dataset.key===k);if(!el)return;
   el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('hl');setTimeout(()=>el.classList.remove('hl'),2500)}
+let FRESH_APPROX=false;
 let token=0,FRESH=0,freshAsked=false,SUB=()=>{};
 async function render(){
   const my=++token, v=$('#view'); lastRender=Date.now();
@@ -475,10 +476,11 @@ async function render(){
     if(STALE){const t=new Date(STALE);return el.innerHTML='<span class="age r" style="margin:0">HORS LIGNE</span> données enregistrées le '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes())}
     if(!FRESH)return el.textContent='Places MAX à 0 € · open data SNCF';
     const hrs=Math.max(0,Math.round((Date.now()-FRESH)/36e5)),t=new Date(FRESH);
-    el.innerHTML='Données SNCF du '+t.getDate()+' '+MON[t.getMonth()]+' à '+pad(t.getHours())+'h'+pad(t.getMinutes())+'<span class="age '+(hrs<8?'g':hrs<26?'o':'r')+'">il y a '+(hrs<1?'moins d’1 h':hrs+' h')+'</span>'};
+    el.innerHTML='Données SNCF renouvelées le '+t.getDate()+' '+MON[t.getMonth()]+(FRESH_APPROX?' avant ':' vers ')+pad(t.getHours())+'h'+pad(t.getMinutes())+'<span class="age '+(hrs<8?'g':hrs<26?'o':'r')+'">il y a '+(hrs<1?'moins d’1 h':hrs+' h')+'</span>'};
   SUB=sub; sub();
-  if(!S.demo&&!FRESH&&!freshAsked){freshAsked=true;getJSON(BASE).then(m=>{const d=m&&m.metas&&m.metas.default||{},t=new Date(d.data_processed||d.modified||'');
-    if(!isNaN(t)){FRESH=+t;sub()}else freshAsked=false}).catch(()=>{freshAsked=false})}
+  /* date réelle du dernier renouvellement, suivie par le dépôt (l'horodatage officiel de la SNCF n'est pas fiable) */
+  if(!S.demo&&!FRESH&&!freshAsked){freshAsked=true;fetch('state/fresh.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(m=>{const t=new Date(m&&m.changed_at||'');
+    if(!isNaN(t)){FRESH=+t;FRESH_APPROX=!!m.approx;sub()}else freshAsked=false}).catch(()=>{freshAsked=false})}
   save();
   try{
     if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
