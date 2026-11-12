@@ -239,7 +239,7 @@ function pset(k,v,retry){try{const s=JSON.stringify(v);if(s.length>600000)return
 async function getJSON(url,pkey){
   const c=cache.get(url); if(c&&Date.now()-c.t<5*60e3)return c.v;
   try{
-    const r=await fetch(url,{headers:{Accept:'application/json'}});
+    const r=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store'});
     if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(e){} throw new Error('SNCF open data a répondu '+r.status+(m?' — '+m:''))}
     const v=await r.json(); cache.set(url,{t:Date.now(),v}); if(pkey)pset(pkey,v); return v;
   }catch(e){const o=pkey&&pget(pkey);if(o){STALE=STALE?Math.min(STALE,o.t):o.t;return o.v}throw e}
