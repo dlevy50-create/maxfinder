@@ -417,6 +417,47 @@ const _unused=`<a class="btn rt" href="${RT}" target="_blank" rel="noopener">⚡
 const BOOK=`<a class="btn" href="${RT}" target="_blank" rel="noopener">Réserver sur SNCF Connect ↗</a>`;
 
 /* ============ Vues ============ */
+/* combinaisons de deux tronçons MAX pour un jour donné */
+async function combos(from,to,date,o){
+  const O=stOf(from),D=stOf(to),q={from:date,to:date,onlyMax:true};
+  const [l1,l2]=await Promise.all([trains({origins:O,...q}),trains({dests:D,...q})]);
+  const excl=new Set([...O,...D]), direct=countMax(l1.filter(r=>D.includes(r.d)));
+  const hub=new Map();
+  for(const r of l2){if(excl.has(r.o))continue;const k=cityKey(r.o);(hub.get(k)||hub.set(k,[]).get(k)).push(r)}
+  const best=new Map();
+  for(const a of l1){
+    if(excl.has(a.d)||mins(a.dep)<o.notBefore*60)continue;
+    const c=hub.get(cityKey(a.d)); if(!c)continue;
+    const aArr=mins(a.dep)+dur(a);
+    for(const b of c){
+      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, intra=/intramuros/i.test(a.d), far=!sameSt||/^PARIS\b/i.test(a.d), multi=!same&&(far||intra);
+      const wait=mins(b.dep)-aArr, need=same?0:far?Math.max(o.minConn,60):o.minConn;
+      if(wait<need||wait>o.maxWait)continue;
+      const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,far,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
+      const k=a.no+'|'+a.dep+'|'+a.o+'|'+cityKey(a.d)+'|'+b.d, p=best.get(k);
+      if(!p||it.arr<p.arr)best.set(k,it);
+    }
+  }
+  let its=[...best.values()];
+  /* pour un même premier train, on écarte les variantes qui arrivent plus d'1 h après la meilleure */
+  const bestArr=new Map();for(const x of its){const k=x.a.no+'|'+x.a.dep+'|'+x.a.o;if(!bestArr.has(k)||x.arr<bestArr.get(k))bestArr.set(k,x.arr)}
+  its=its.filter(x=>x.arr<=bestArr.get(x.a.no+'|'+x.a.dep+'|'+x.a.o)+60);
+  return {its,direct};
+}
+/* encart « découpages recommandés » du Calendrier : les plus simples d'abord */
+async function fillReco(my,date){
+  const el=document.getElementById('reco'); if(!el)return;
+  try{
+    const F=S.filt, {its}=await combos(S.from,S.to,date,{minConn:10,maxWait:60,notBefore:0});
+    if(my!==token||!document.getElementById('reco'))return;
+    const score=x=>(x.same?0:1e6)+((x.wait<15||x.wait>45)&&!x.same?1e5:0)+x.total, seenA=new Set(), seenB=new Set(), pick=[];
+    for(const x of its.filter(x=>!x.far&&(!F.eve||x.dep>=1020)&&(!F.morn||x.arr<=720)&&(!F.main||(S.from.stations.includes(x.a.o)&&S.to.stations.includes(x.b.d)))).sort((x,y)=>score(x)-score(y))){
+      const ka=x.a.no+x.a.dep, kb=x.b.no+x.b.dep+(x.same?x.a.d:''); if(seenA.has(ka)||(!x.same&&seenB.has(kb)))continue; seenA.add(ka); seenB.add(kb); pick.push(x); if(pick.length===3)break}
+    document.getElementById('reco').innerHTML=pick.length?`<div class="card"><div class="st">Découpages recommandés · 2 billets MAX</div>${pick.map(x=>`<button class="al" style="width:100%;text-align:left" data-tab="split">
+        <span><b class="t" style="font-size:17px">${hm(x.dep)} → ${hm(x.arr)}</b> <span class="st">· ${fdur(x.total)}</span><br><span class="st">${x.same?`Même train, sans changement · 2 réservations (coupure à ${esc(stName(x.a.d,x.a.o))})`:`via ${esc(stName(x.a.d,x.a.o))} · ${x.wait} min de correspondance${x.wait<20?' · ⚠️ courte, non garantie':''}`}</span></span><span class="st">›</span></button>`).join('')}</div>`
+      :`<div class="st" style="margin:0 4px 12px">Pas de découpage simple ce jour-là. <button data-tab="split" style="text-decoration:underline">Voir toutes les combinaisons</button></div>`;
+  }catch(e){const x=document.getElementById('reco');if(x&&my===token)x.innerHTML=''}
+}
 let token=0,FRESH=0,freshAsked=false,SUB=()=>{};
 async function render(){
   const my=++token, v=$('#view'); lastRender=Date.now();
@@ -436,7 +477,7 @@ async function render(){
     if(!STATIONS.length){v.innerHTML=loading('Chargement des gares…');await loadStations();}
     ensureDefaults();
     const html=await VIEWS[S.tab](h=>{if(my===token)v.innerHTML=h});
-    if(my===token){v.innerHTML=html+FOOT;SUB()}
+    if(my===token){v.innerHTML=html+FOOT;SUB();if(S.tab==='trajet')fillReco(my,S.date)}
   }catch(e){console.error(e);if(my===token)v.innerHTML=errorBox(e)}
 }
 const range=()=>({from:iso(today()),to:iso(addDays(today(),HORIZON))});
@@ -505,6 +546,7 @@ const VIEWS={
   const day=rows.filter(r=>r.date===S.date).sort(byDep), ok=day.filter(r=>r.max), list=S.hideFull?ok:day;
   let h=head+`<div class="card">${c}</div><h2>${fdate(S.date)} · ${ok.length} place${ok.length>1?'s':''} MAX</h2>`;
   if(day.length)h+=`<div class="card"><div class="st">Horaires avec place MAX</div>${ok.length?`<div class="pills">${[...new Map(ok.map(r=>[r.no+r.dep,r])).values()].map(r=>`<span class="pill ${S.from.stations.includes(r.o)&&S.to.stations.includes(r.d)?'':'alt'} ${r.isNew?'nw':''}">${r.dep}</span>`).join('')}</div>`:'<div class="st" style="margin-top:6px">Aucun pour l’instant.</div>'}</div>`+rtBtn(S.from,S.to,S.date)+`<div class="st" style="margin:6px 4px 12px">Les trains en gris étaient complets ce matin : une place peut s’être libérée depuis.</div>`;
+  h+=`<div id="reco" style="margin-top:12px"><div class="st" style="margin:0 4px 12px">Recherche de découpages simples…</div></div>`;
   h+=list.map(r=>trainCard(r,S.from,S.to,day)).join('');
   if(!ok.length)h+=`<div class="msg">${day.length?'Tous les trains sont complets en MAX ce jour-là.':'Aucun train trouvé ce jour-là'+(F.main||F.eve||F.morn?' avec ces filtres':'')+'.'}</div><button class="btn" data-tab="split">Essayer le découpage en 2 tronçons →</button>`;
   else h+=`<button class="btn ghost" data-tab="split">Voir aussi les trajets avec correspondance →</button>`+BOOK;
@@ -521,30 +563,7 @@ const VIEWS={
     <label>Attente max.<select id="sMax">${[90,120,180,240,360].map(x=>opt(x,fdur(x),S.maxWait)).join('')}</select></label>
     <label>Tri<select id="sSort">${opt('arr','Arrivée',S.sort)+opt('dur','Durée',S.sort)+opt('dep','Départ',S.sort)}</select></label></div></div>`;
   paint(head+loading('Calcul des combinaisons…'));
-  const O=stOf(S.from),D=stOf(S.to),q={from:S.date,to:S.date,onlyMax:true};
-  const [l1,l2]=await Promise.all([trains({origins:O,...q}),trains({dests:D,...q})]);
-  const excl=new Set([...O,...D]), direct=countMax(l1.filter(r=>D.includes(r.d)));
-  const hub=new Map();
-  for(const r of l2){if(excl.has(r.o))continue;const k=cityKey(r.o);(hub.get(k)||hub.set(k,[]).get(k)).push(r)}
-  const best=new Map();
-  for(const a of l1){
-    if(excl.has(a.d)||mins(a.dep)<S.notBefore*60)continue;
-    const c=hub.get(cityKey(a.d)); if(!c)continue;
-    const aArr=mins(a.dep)+dur(a);
-    for(const b of c){
-      const sameSt=a.d===b.o, same=sameSt&&a.no===b.no, intra=/intramuros/i.test(a.d), far=!sameSt||/^PARIS\b/i.test(a.d), multi=!same&&(far||intra);
-      const wait=mins(b.dep)-aArr, need=same?0:far?Math.max(S.minConn,60):S.minConn;
-      if(wait<need||wait>S.maxWait)continue;
-      const arr=mins(b.dep)+dur(b), it={a,b,wait,same,multi,far,dep:mins(a.dep),arr,total:arr-mins(a.dep)};
-      const k=a.no+'|'+a.dep+'|'+a.o+'|'+cityKey(a.d)+'|'+b.d, p=best.get(k);
-      if(!p||it.arr<p.arr)best.set(k,it);
-    }
-  }
-  /* on enlève les options dominées : même départ ou plus tard ET arrivée plus tardive via le même hub */
-  let its=[...best.values()];
-  { /* pour un même premier train, on écarte les variantes qui arrivent plus d'1 h après la meilleure */
-    const bestArr=new Map();for(const x of its){const k=x.a.no+'|'+x.a.dep+'|'+x.a.o;if(!bestArr.has(k)||x.arr<bestArr.get(k))bestArr.set(k,x.arr)}
-    its=its.filter(x=>x.arr<=bestArr.get(x.a.no+'|'+x.a.dep+'|'+x.a.o)+60)}
+  let {its,direct}=await combos(S.from,S.to,S.date,{minConn:S.minConn,maxWait:S.maxWait,notBefore:S.notBefore});
   const key={arr:x=>x.arr*10000+x.total,dur:x=>x.total*10000+x.arr,dep:x=>x.dep*10000+x.total}[S.sort];
   its.sort((x,y)=>(y.same-x.same)||key(x)-key(y));
   let h=head+`<h2>${fdate(S.date)} · ${its.length} combinaison${its.length>1?'s':''}</h2>`;
