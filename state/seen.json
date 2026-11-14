@@ -1,4 +1,7 @@
 {
  "cfg": "alertes-1794433754539.json",
- "seen": []
+ "seen": [
+  "Montpellier → Paris|2026-12-13|6250|MONTPELLIER SUD DE FRANCE|PARIS (intramuros)|07:50",
+  "Montpellier → Paris|2026-12-13|6250|NIMES PONT DU GARD|PARIS (intramuros)|08:12"
+ ]
 }
